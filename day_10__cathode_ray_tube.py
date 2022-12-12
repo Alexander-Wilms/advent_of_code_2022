@@ -1,3 +1,6 @@
+import numpy
+
+
 class CPU():
     def __init__(self):
         self.cycle: int = 0
@@ -9,6 +12,7 @@ class CPU():
         self.execution_finished: bool = False
         self.program: list[str] = []
         self.sum_of_signal_strengths: int = 0
+        self.crt: CRT = CRT()
 
     def set_program(self, program: str) -> int:
         instructions = []
@@ -22,6 +26,7 @@ class CPU():
         self.cycle = 0
         self.X = 1
         self.sum_of_signal_strengths = 0
+        self.crt = CRT()
         print('program '+program+' loaded')
         return cycles_neccessary
 
@@ -54,6 +59,9 @@ class CPU():
 
         # print('\tinstruction: '+self.current_instruction)
         # print('\tX during cycle: '+str(self.X))
+        self.crt.draw_pixel(self.X)
+        self.crt.print_screen()
+        print('---')
 
         if self.cycle in [*range(20, 220+1, 40)]:
             signal_strength = self.signal_strength()
@@ -73,6 +81,34 @@ class CPU():
 
     def signal_strength(self) -> int:
         return self.cycle*self.X
+
+
+class CRT():
+    def __init__(self):
+        self.width: int = 40
+        self.height: int = 6
+        self.current_pixel: int = 0
+        self.screen: numpy.ndarray = numpy.full((self.width, self.height), False)
+        pass
+
+    def draw_pixel(self, X_sprite: int):
+        x = self.current_pixel % self.width
+
+        if abs(x-X_sprite) < 2:
+            y = int(self.current_pixel / self.width)
+            self.screen[x, y] = True
+
+        self.current_pixel += 1
+
+    def print_screen(self):
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.screen[x, y]:
+                    pixel = '#'
+                else:
+                    pixel = '.'
+                print(pixel, end=' ')
+            print()
 
 
 cpu = CPU()
