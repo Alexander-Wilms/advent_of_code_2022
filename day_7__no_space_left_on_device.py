@@ -85,4 +85,19 @@ for size in directory_sizes:
     if size <= 100000:
         sum += size
 
+
+total_disk_space = 70000000
+used_disk_space = max(directory_sizes)
+unused_disk_space = total_disk_space-used_disk_space
+required_unused_disk_space = 30000000
+required_to_be_deleted = required_unused_disk_space-unused_disk_space
+
+if required_to_be_deleted > 0:
+    size_of_deleted_directory = 0
+    for size_of_deletion_candidate in sorted(directory_sizes):
+        if size_of_deletion_candidate > required_to_be_deleted:
+            size_of_deleted_directory = size_of_deletion_candidate
+            break
+
 print('solution to part 1: '+str(sum))
+print('solution to part 2: '+str(size_of_deleted_directory))
