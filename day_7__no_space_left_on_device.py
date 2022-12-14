@@ -1,44 +1,50 @@
+from functools import reduce
 from pprint import pprint
+
+
+def get_sizes(filesystem: dict, name, dir_sizes: list[int]) -> tuple[int, list[int]]:
+    size = 0
+    if isinstance(filesystem, dict):
+        for k, v in filesystem.items():
+            if isinstance(v, dict):
+                tmp, dir_sizes = get_sizes(v, k, dir_sizes)
+                size += tmp
+            else:
+                size += v
+        print(f"The total size of directory {name} is {size}")
+        pprint(dir_sizes)
+        dir_sizes.append(size)
+        pprint(dir_sizes)
+        return size, dir_sizes
+    else:
+        return v, dir_sizes
 
 
 def create_dir(path):
     print("creating dir "+path)
-    global filesystem
+    # https://stackoverflow.com/a/9320375/2278742
     path_elements = path.split('/')
-    pprint(path_elements)
-    for idx in range(1, len(path_elements)):
-        match idx:
-            case 1:
-                filesystem[path_elements[1]] = dict()
-            case 2:
-                filesystem[path_elements[1]][path_elements[2]] = dict()
-            case 3:
-                filesystem[path_elements[1]][path_elements[2]][path_elements[3]] = dict()
-    pprint(filesystem)
+    key = path_elements[1:]
+    my_dict = reduce(dict.get, key[:-1], filesystem)
+    my_dict[key[-1]] = dict()
 
 
 def insert_file(path: str, name: str, size: int):
     print("creating file '"+name+"' in "+path)
-    global filesystem
-    path_elements = path.split('/')
-
-    pprint(path_elements)
-    pprint(len(path_elements))
-    match len(path_elements)-1:
-        case 1:
-            filesystem[name] = size
-        case 2:
-            filesystem[path_elements[1]][name] = size
-        case 3:
-            filesystem[path_elements[1]][path_elements[2]][name] = size
-
-    pprint(filesystem)
+    path_with_file = path+'/'+name
+    path_with_file = path_with_file.replace('//', '/')
+    path_elements = path_with_file.split('/')
+    key = path_elements[1:]
+    my_dict = reduce(dict.get, key[:-1], filesystem)
+    my_dict[key[-1]] = size
 
 
 filesystem = {}
 current_path = ''
 
-with open('day_7_input_example.txt') as file:
+input_file = 'day_7_input.txt'
+
+with open(input_file) as file:
     for line in file:
         line = line.strip()
         print(line)
@@ -49,10 +55,11 @@ with open('day_7_input_example.txt') as file:
                     current_path = '/'
                 elif elements[2] == '..':
                     current_path_elements = current_path.split('/')
-                    current_path = '/'+'/'.join(current_path_elements[0:-2])
+                    current_path = '/'+'/'.join(current_path_elements[0:-2])+'/'
                     current_path = current_path.replace('//', '/')
                 else:
-                    current_path += elements[2]+'/'
+                    current_path += '/'+elements[2]+'/'
+                    current_path = current_path.replace('//', '/')
         elif elements[0] == 'dir':
             create_dir((current_path+'/'+elements[1]).replace('//', '/'))
         else:
@@ -60,4 +67,22 @@ with open('day_7_input_example.txt') as file:
             file_size = int(elements[0])
             file_name = elements[1]
             insert_file(current_path, file_name, file_size)
+        print(current_path)
 
+
+if input_file == 'day_7_input_example.txt':
+    filesystem_expected = {'a': {'e': {'i': 584}, 'f': 29116, 'g': 2557, 'h.lst': 62596},
+                           'b.txt': 14848514,
+                           'c.dat': 8504156,
+                           'd': {'d.ext': 5626152, 'd.log': 8033020, 'j': 4060174, 'k': 7214296}}
+    assert filesystem == filesystem_expected
+
+directory_sizes = get_sizes(filesystem, '/', [])[1]
+pprint(directory_sizes)
+
+sum = 0
+for size in directory_sizes:
+    if size <= 100000:
+        sum += size
+
+print('solution to part 1: '+str(sum))
