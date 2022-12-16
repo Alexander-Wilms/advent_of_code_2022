@@ -1,8 +1,9 @@
 from pprint import pprint
 import numpy as np
+import os
 
 
-def print_caves(rocks: list[list[int]]):
+def create_sim(rocks: list[list[int]]) -> np.ndarray:
     columns = []
     rows = []
     for rock in rocks:
@@ -16,33 +17,35 @@ def print_caves(rocks: list[list[int]]):
 
     number_of_columns = max_col-min_col+1
 
-    cave_map = np.ndarray((max_row+1, number_of_columns), dtype=np.object_)
+    sim = np.ndarray((max_row+1, number_of_columns), dtype=np.object_)
 
-    cave_map[:] = '.'
+    sim[:] = '.'
 
-    pprint(cave_map)
+    pprint(sim)
 
-    print_caves_fr(cave_map, min_col)
+    print_sim(sim, min_col)
 
     filled_rocks = fill_lines(rocks)
     pprint(filled_rocks)
 
-    cave_map[0, col_to_idx(500, min_col)] = '+'
+    sim[0, col_to_idx(500, min_col)] = '+'
 
     for rock in filled_rocks:
         for point in rock:
             pprint(point)
-            cave_map[point[1], col_to_idx(point[0], min_col)] = '#'
+            sim[point[1], col_to_idx(point[0], min_col)] = '#'
 
-    print_caves_fr(cave_map, min_col)
+    print_sim(sim, min_col)
+
+    return sim
 
 
 def col_to_idx(col: int, first_col: int) -> int:
     return col-first_col
 
 
-def print_caves_fr(cave_map: np.ndarray, first_col: int):
-    dimensions = cave_map.shape
+def print_sim(sim: np.ndarray, first_col: int):
+    dimensions = sim.shape
 
     col_str_list = []
     col_str_lengths = []
@@ -61,8 +64,53 @@ def print_caves_fr(cave_map: np.ndarray, first_col: int):
     for row in range(dimensions[0]):
         print(str(row), end=' ')
         for col in range(dimensions[1]):
-            print(cave_map[row, col], end=' ')
+            print(sim[row, col], end=' ')
         print()
+
+
+def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int]) -> tuple[np.ndarray, bool, tuple[int]]:
+    os.system('clear')
+    dim = sim.shape
+    active_sand_found = False
+
+    vector = [1, 0]
+
+    # check if active grain of sand has come to a halt
+    if active_sand_coord[0]+1 <= dim[0]:
+        pprint(active_sand_coord)
+        if sim[active_sand_coord[0], active_sand_coord[1]] == 'o' and sim[active_sand_coord[0]+1, active_sand_coord[1]] == '.':
+            print('sand can fall')
+            active_sand_found = True
+            vector = [1, 0]
+        elif sim[active_sand_coord[0], active_sand_coord[1]] == 'o' and sim[active_sand_coord[0]+1, active_sand_coord[1]] is not '.':
+            if active_sand_coord[1]-1 >= 0:
+                if sim[active_sand_coord[0]+1, active_sand_coord[1]-1] == '.':
+                    active_sand_found = True
+                    vector = [1, -1]
+                elif active_sand_coord[1]+1 <= dim[1]:
+                    if sim[active_sand_coord[0]+1, active_sand_coord[1]+1] == '.':
+                        active_sand_found = True
+                        vector = [1, +1]
+        else:
+            print('sand outside sim')
+            return
+    else:
+        print('sand cannot fall')
+        active_sand_found = False
+
+    # spawn a new grain if previous one has come to a halt
+    if not active_sand_found:
+        print('spawn new sand')
+        sim[1, col_to_idx(500, min_col)] = 'o'
+        active_sand_coord = [1, col_to_idx(500, min_col)]
+        active_sand_found = True
+    else:
+        # simulate current grain
+        sim[active_sand_coord[0], active_sand_coord[1]] = '.'
+        sim[active_sand_coord[0]+vector[0], active_sand_coord[1]+vector[1]] = 'o'
+        active_sand_coord = [active_sand_coord[0]+vector[0], active_sand_coord[1]+vector[1]]
+
+    return sim, active_sand_found, active_sand_coord
 
 
 def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
@@ -110,4 +158,15 @@ with open('day_14_input_example.txt') as file:
         rocks.append(points)
 
 pprint(rocks)
-print_caves(rocks)
+sim = create_sim(rocks)
+
+sim_not_finished = True
+
+min_col = 494
+
+sim[1, col_to_idx(500, min_col)] = 'o'
+active_sand_coord = [1, col_to_idx(500, min_col)]
+
+while sim_not_finished:
+    sim, sim_not_finished, active_sand_coord = time_step(sim, min_col, active_sand_coord)
+    print_sim(sim, min_col)
