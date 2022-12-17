@@ -78,21 +78,21 @@ def print_sim(sim: np.ndarray, first_col: int):
             print(sim[row, col], end=' ')
         print()
 
-def find_end_of_slope(sim, active_sand_coord) -> tuple[np.ndarray, list[int]]:
+def find_end_of_slope(sim, active_sand_coord, slope) -> tuple[np.ndarray, list[int]]:
     target_not_found = True
-    potential_vector = [1, -1]
+    potential_vector = [1, slope]
     vector = [0, 0]
     while target_not_found:
         if (sim[active_sand_coord[0]+potential_vector[0], active_sand_coord[1]+potential_vector[1]] == '.') and \
-            (sim[active_sand_coord[0]+potential_vector[0], active_sand_coord[1]+potential_vector[1]+1] != '.') and \
+            (sim[active_sand_coord[0]+potential_vector[0], active_sand_coord[1]+potential_vector[1]-slope] != '.') and \
                 (active_sand_coord[0]+potential_vector[0]-1 < sim.shape[0]):
-            potential_vector = [potential_vector[0]+1, potential_vector[1]-1]
+            potential_vector = [potential_vector[0]+1, potential_vector[1]+slope]
             print('loop')
         else:
             target_not_found = False
             break
 
-    potential_vector = [potential_vector[0]-1, potential_vector[1]+1]
+    potential_vector = [potential_vector[0]-1, potential_vector[1]-slope]
 
     vector = potential_vector
     return sim, vector
@@ -142,7 +142,7 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
                 if (sim[active_sand_coord[0]+1, active_sand_coord[1]-1] == '.'):
                     active_sand_found = True
                     fell_to_the_left = True
-                    map, vector = find_end_of_slope(sim, active_sand_coord)
+                    map, vector = find_end_of_slope(sim, active_sand_coord, -1)
                     print('sand can fall to the left')
 
             else:
@@ -155,10 +155,11 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
             if not fell_to_the_left:
                 if active_sand_coord[1]+1 <= dim[1]:
                     if sim[active_sand_coord[0]+1, active_sand_coord[1]+1] == '.':
-                        print('sand can fall to the right')
                         active_sand_found = True
-                        vector = [1, +1]
                         fell_to_the_right = True
+                        map, vector = find_end_of_slope(sim, active_sand_coord, 1)
+                        print('sand can fall to the right')
+                        
 
             if not fell_to_the_left and not fell_to_the_right:
                 print('sand cant fall to the left or right')
