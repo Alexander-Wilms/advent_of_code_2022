@@ -1,6 +1,7 @@
-from pprint import pprint
-import numpy as np
 import os
+from pprint import pprint
+
+import numpy as np
 
 
 def create_sim(rocks: list[list[int]]) -> tuple[np.ndarray, int]:
@@ -21,21 +22,14 @@ def create_sim(rocks: list[list[int]]) -> tuple[np.ndarray, int]:
 
     sim[:] = '.'
 
-    pprint(sim)
-
-    print_sim(sim, min_col)
-
     filled_rocks = fill_lines(rocks)
-    pprint(filled_rocks)
 
     sim[0, col_to_idx(500, min_col)] = '+'
 
     for rock in filled_rocks:
         for point in rock:
-            pprint(point)
+            # pprint(point)
             sim[point[1], col_to_idx(point[0], min_col)] = '#'
-
-    print_sim(sim, min_col)
 
     return sim, min_col
 
@@ -47,6 +41,9 @@ def col_to_idx(col: int, first_col: int) -> int:
 def print_sim(sim: np.ndarray, first_col: int):
     dimensions = sim.shape
 
+    start_drawing_at_row = 0
+    stop_drawing_at_row = 999
+
     col_str_list = []
     col_str_lengths = []
     for col in range(first_col, first_col+dimensions[1]):
@@ -54,15 +51,19 @@ def print_sim(sim: np.ndarray, first_col: int):
         col_str_list.append(col_str)
         col_str_lengths.append(len(col_str))
 
+    indent = ''
+    for _ in range(len(str(dimensions[0]))):
+        indent += ' '
+
     for row in range(max(col_str_lengths)):
-        print('  ', end='')
+        print(indent, end=' ')
         for col in range(dimensions[1]):
             if row < len(col_str_list[col]):
                 print(col_str_list[col][row]+' ', end='')
         print()
 
-    for row in range(dimensions[0]):
-        print(str(row), end=' ')
+    for row in range(start_drawing_at_row, min(dimensions[0], stop_drawing_at_row)):
+        print(str(row).rjust(len(str(dimensions[0]))), end=' ')
         for col in range(dimensions[1]):
             print(sim[row, col], end=' ')
         print()
@@ -79,7 +80,7 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
 
     pprint(dim)
     pprint(active_sand_coord)
-    
+
     in_static_state = False
 
     # check if active grain of sand has come to a halt
@@ -88,7 +89,13 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
         if sim[active_sand_coord[0], active_sand_coord[1]] == 'o' and sim[active_sand_coord[0]+1, active_sand_coord[1]] == '.':
             print('sand can fall freely')
             active_sand_found = True
-            vector = [1, 0]
+            free_fall_height = 0
+            for cell in range(active_sand_coord[0]+1, dim[0]):
+                if sim[cell, active_sand_coord[1]] == '.':
+                    free_fall_height += 1
+                else:
+                    break
+            vector = [free_fall_height, 0]
         # check if cell below is not free
         elif sim[active_sand_coord[0], active_sand_coord[1]] == 'o' and sim[active_sand_coord[0]+1, active_sand_coord[1]] is not '.':
             if active_sand_coord[1]-1 >= 0:
@@ -104,34 +111,33 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
                 else:
                     # sand would leave sim
                     active_sand_found = False
-                    sand_leaves_sim = True
                     sim[active_sand_coord[0], active_sand_coord[1]] = '.'
             else:
                 active_sand_found = False
-                sand_leaves_sim = True
                 sim[active_sand_coord[0], active_sand_coord[1]] = '.'
                 grain_count -= 1
                 in_static_state = True
         else:
             active_sand_found = False
-            sand_leaves_sim = True
             sim[active_sand_coord[0], active_sand_coord[1]] = '.'
     else:
         active_sand_found = False
-        sand_leaves_sim = True
         sim[active_sand_coord[0], active_sand_coord[1]] = '.'
 
     # spawn a new grain if previous one has come to a halt
     if not active_sand_found:
-        print('spawn new sand')
-        sim[1, col_to_idx(500, min_col)] = 'o'
-        active_sand_coord = [1, col_to_idx(500, min_col)]
-        active_sand_found = True
-        grain_count += 1
+        if not in_static_state:
+            print('spawn new sand')
+            sim[1, col_to_idx(500, min_col)] = 'o'
+            active_sand_coord = [1, col_to_idx(500, min_col)]
+            active_sand_found = True
+            grain_count += 1
     else:
         # simulate current grain
         sim[active_sand_coord[0], active_sand_coord[1]] = '.'
-        sim[active_sand_coord[0]+vector[0], active_sand_coord[1]+vector[1]] = 'o'
+        new_coords = [active_sand_coord[0]+vector[0], active_sand_coord[1]+vector[1]]
+        print(f"grain 'x' is falling to coord [{new_coords[0]}, {new_coords[1]}]")
+        sim[new_coords[0], new_coords[1]] = 'o'
         active_sand_coord = [active_sand_coord[0]+vector[0], active_sand_coord[1]+vector[1]]
 
     return sim, active_sand_found, active_sand_coord, grain_count, in_static_state
@@ -157,7 +163,12 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
                 first_coordinate = next_point[0]
 
             filled_rock.append(point)
-            for filler_coordinate in range(first_coordinate, last_coordinate):
+            if first_coordinate <= last_coordinate:
+                step = 1
+            else:
+                step = -1
+                
+            for filler_coordinate in range(first_coordinate, last_coordinate, step):
                 if vertical:
                     filler_point = [constant_coordinate, filler_coordinate]
                 else:
@@ -171,7 +182,7 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
 
 
 rocks = []
-with open('day_14_input_example.txt') as file:
+with open('day_14_input.txt') as file:
     for line in file:
         stripped_line = line.strip()
         points = stripped_line.split('->')
@@ -181,8 +192,10 @@ with open('day_14_input_example.txt') as file:
             points[idx] = [int(points[idx][0]), int(points[idx][1])]
         rocks.append(points)
 
-pprint(rocks)
+# pprint(rocks)
 sim, min_col = create_sim(rocks)
+
+print_sim(sim, min_col)
 
 sim_not_finished = True
 
@@ -190,11 +203,20 @@ sim[1, col_to_idx(500, min_col)] = 'o'
 active_sand_coord = [1, col_to_idx(500, min_col)]
 grain_count = 1
 
+last_pause_at_grain_count = -1
+
+update_period = 20
+
 while sim_not_finished:
     sim, sim_not_finished, active_sand_coord, grain_count, in_static_state = time_step(sim, min_col, active_sand_coord, grain_count)
-    print_sim(sim, min_col)
+    if update_period is not -1:
+        if grain_count % update_period == 0 and last_pause_at_grain_count is not grain_count:
+            last_pause_at_grain_count = grain_count
+            print_sim(sim, min_col)
+            print('Show an update every x grains (enter -1 to run without pausing):')
+            update_period = int(input())
     if in_static_state:
         break
 
 # sustract 1 because an additional grain was spawned
-print('solution to part 1: '+str(grain_count-1))
+print('solution to part 1: '+str(grain_count))
