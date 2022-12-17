@@ -1,7 +1,8 @@
-from pprint import pprint
-import numpy as np
-from copy import deepcopy
 import os
+from copy import deepcopy
+from pprint import pprint
+
+import numpy as np
 
 
 def create_sim(rocks: list[list[int]], puzle_part: int) -> tuple[np.ndarray, int]:
@@ -95,12 +96,6 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
     print(f"{active_sand_coord=}")
 
     in_steady_state = False
-
-    # if (sim[spawn_point[0], spawn_point[1]] == 'o') and \
-    #     ((sim[active_sand_coord[0]+1, active_sand_coord[1]-1] == 'O') and \
-    #             (sim[active_sand_coord[0]+1, active_sand_coord[1]] == 'o') and \
-    #                 (sim[active_sand_coord[0]+1, active_sand_coord[1]+1] == 'o')):
-    # reset spawn point
     if (sim[spawn_point[0], spawn_point[1]] == 'o'):
         spawn_point = deepcopy(default_spawn_point)
 
@@ -108,14 +103,6 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
 
     # check if active grain of sand has come to a halt
     if active_sand_coord[0]+1 < dim[0]:
-        #     if (sim[active_sand_coord[0], active_sand_coord[1]] == 'o') and \
-        #         ((sim[active_sand_coord[0]+1, active_sand_coord[1]-1] == '.') or \
-        #             (sim[active_sand_coord[0]+1, active_sand_coord[1]] == '.') or \
-        #                 (sim[active_sand_coord[0]+1, active_sand_coord[1]+1] == '.')):
-        #                 print('updateing spawn point')
-        #                 spawn_point = [active_sand_coord[0], active_sand_coord[1]]
-        #     else:
-        #         print('keeping spawn point')
 
         # check if cell below is free
         if sim[active_sand_coord[0], active_sand_coord[1]] == 'o' and sim[active_sand_coord[0]+1, active_sand_coord[1]] == '.':
@@ -134,11 +121,27 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
 
             fell_to_the_left = False
             if active_sand_coord[1]-1 >= 0:
-                if sim[active_sand_coord[0]+1, active_sand_coord[1]-1] == '.':
-                    print('sand can fall to the left')
+                if (sim[active_sand_coord[0]+1, active_sand_coord[1]-1] == '.'):
                     active_sand_found = True
-                    vector = [1, -1]
                     fell_to_the_left = True
+                    target_not_found = True
+                    potential_vector = [1, -1]
+                    vector = [0, 0]
+                    while target_not_found:
+                        if (sim[active_sand_coord[0]+potential_vector[0], active_sand_coord[1]+potential_vector[1]] == '.') and \
+                            (sim[active_sand_coord[0]+potential_vector[0], active_sand_coord[1]+potential_vector[1]+1] != '.') and \
+                                (active_sand_coord[0]+potential_vector[0]-1 < dim[0]):
+                            potential_vector = [potential_vector[0]+1, potential_vector[1]-1]
+                            print('loop')
+                        else:
+                            target_not_found = False
+                            break
+
+                    potential_vector = [potential_vector[0]-1, potential_vector[1]+1]
+
+                    vector = potential_vector
+                    print('sand can fall to the left')
+
             else:
                 active_sand_found = False
                 sim[active_sand_coord[0], active_sand_coord[1]] = '.'
@@ -244,7 +247,7 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
 
 
 rocks = []
-with open('day_14_input.txt') as file:
+with open('day_14_input_optimization_test.txt') as file:
     for line in file:
         stripped_line = line.strip()
         points = stripped_line.split('->')
@@ -277,7 +280,7 @@ active_sand_coord = [spawn_point[0], spawn_point[1]]
 
 spawn_point_reached = False
 
-print_sim_toggle = False
+print_sim_toggle = True
 
 
 while sim_not_finished:
@@ -298,7 +301,6 @@ while sim_not_finished:
         break
     if puzzle_part == 2 and spawn_point_reached:
         break
-
 
 
 print_sim(sim, min_col)
