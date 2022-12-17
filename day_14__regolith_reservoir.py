@@ -1,6 +1,4 @@
-import os
 from pprint import pprint
-
 import numpy as np
 
 
@@ -70,7 +68,10 @@ def print_sim(sim: np.ndarray, first_col: int):
 
 
 def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grain_count: int) -> tuple[np.ndarray, bool, tuple[int], int, bool]:
-    os.system('clear')
+    # os.system('clear')
+
+    # print_sim(sim, min_col)
+    print()
     dim = sim.shape
     active_sand_found = False
 
@@ -81,7 +82,7 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
     pprint(dim)
     pprint(active_sand_coord)
 
-    in_static_state = False
+    in_steady_state = False
 
     # check if active grain of sand has come to a halt
     if active_sand_coord[0]+1 < dim[0]:
@@ -97,50 +98,62 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
                     break
             vector = [free_fall_height, 0]
         # check if cell below is not free
-        elif sim[active_sand_coord[0], active_sand_coord[1]] == 'o' and sim[active_sand_coord[0]+1, active_sand_coord[1]] is not '.':
+        else:
+            fell_to_the_left = False
             if active_sand_coord[1]-1 >= 0:
                 if sim[active_sand_coord[0]+1, active_sand_coord[1]-1] == '.':
                     print('sand can fall to the left')
                     active_sand_found = True
                     vector = [1, -1]
-                elif active_sand_coord[1]+1 <= dim[1]:
-                    if sim[active_sand_coord[0]+1, active_sand_coord[1]+1] == '.':
-                        print('sand can fall to the right')
-                        active_sand_found = True
-                        vector = [1, +1]
-                else:
-                    # sand would leave sim
-                    active_sand_found = False
-                    sim[active_sand_coord[0], active_sand_coord[1]] = '.'
+                    fell_to_the_left = True
             else:
                 active_sand_found = False
                 sim[active_sand_coord[0], active_sand_coord[1]] = '.'
                 grain_count -= 1
-                in_static_state = True
-        else:
-            active_sand_found = False
-            sim[active_sand_coord[0], active_sand_coord[1]] = '.'
+                in_steady_state = True
+
+            fell_to_the_right = False
+            if not fell_to_the_left:
+                if active_sand_coord[1]+1 <= dim[1]:
+                    if sim[active_sand_coord[0]+1, active_sand_coord[1]+1] == '.':
+                        print('sand can fall to the right')
+                        active_sand_found = True
+                        vector = [1, +1]
+                        fell_to_the_right = True
+
+            if not fell_to_the_left and not fell_to_the_right:
+                print('sand cant fall to the left or right')
+                # sand would leave sim
+                active_sand_found = False
+                vector = [0, 0]
     else:
-        active_sand_found = False
+        active_sand_found = True
         sim[active_sand_coord[0], active_sand_coord[1]] = '.'
 
     # spawn a new grain if previous one has come to a halt
     if not active_sand_found:
-        if not in_static_state:
+        if not in_steady_state:
             print('spawn new sand')
+            print()
             sim[1, col_to_idx(500, min_col)] = 'o'
             active_sand_coord = [1, col_to_idx(500, min_col)]
             active_sand_found = True
             grain_count += 1
+        else:
+            # so the diagram doesn't jump around-2
+            print()
     else:
         # simulate current grain
         sim[active_sand_coord[0], active_sand_coord[1]] = '.'
         new_coords = [active_sand_coord[0]+vector[0], active_sand_coord[1]+vector[1]]
         print(f"grain 'x' is falling to coord [{new_coords[0]}, {new_coords[1]}]")
+        if new_coords[0] >= dim[0]:
+            in_steady_state = True
+            return sim, active_sand_found, active_sand_coord, grain_count, in_steady_state
         sim[new_coords[0], new_coords[1]] = 'o'
-        active_sand_coord = [active_sand_coord[0]+vector[0], active_sand_coord[1]+vector[1]]
+        active_sand_coord = [new_coords[0], new_coords[1]]
 
-    return sim, active_sand_found, active_sand_coord, grain_count, in_static_state
+    return sim, active_sand_found, active_sand_coord, grain_count, in_steady_state
 
 
 def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
@@ -167,7 +180,6 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
                 step = 1
             else:
                 step = -1
-                
             for filler_coordinate in range(first_coordinate, last_coordinate, step):
                 if vertical:
                     filler_point = [constant_coordinate, filler_coordinate]
@@ -205,18 +217,25 @@ grain_count = 1
 
 last_pause_at_grain_count = -1
 
-update_period = 20
+update_period = 10
 
 while sim_not_finished:
-    sim, sim_not_finished, active_sand_coord, grain_count, in_static_state = time_step(sim, min_col, active_sand_coord, grain_count)
+    sim, sim_not_finished, active_sand_coord, grain_count, in_steady_state = time_step(sim, min_col, active_sand_coord, grain_count)
     if update_period is not -1:
-        if grain_count % update_period == 0 and last_pause_at_grain_count is not grain_count:
+        if update_period is -2:
+            #print_sim(sim, min_col)
+            pass
+        elif grain_count % update_period == 0 and last_pause_at_grain_count is not grain_count:
             last_pause_at_grain_count = grain_count
             print_sim(sim, min_col)
-            print('Show an update every x grains (enter -1 to run without pausing):')
-            update_period = int(input())
-    if in_static_state:
+            print('Show an update every x grains (enter -1 to run without pausing or -2 to run without pausing while displaying the simulation):')
+            try:
+                update_period = int(input())
+            except:
+                pass
+    if in_steady_state:
         break
 
-# sustract 1 because an additional grain was spawned
+# sustract 1 because an additional grain was spawned (the first one to flow outside the simulation)
+print_sim(sim, min_col)
 print('solution to part 1: '+str(grain_count))
