@@ -78,6 +78,24 @@ def print_sim(sim: np.ndarray, first_col: int):
             print(sim[row, col], end=' ')
         print()
 
+def find_end_of_slope(sim, active_sand_coord) -> tuple[np.ndarray, list[int]]:
+    target_not_found = True
+    potential_vector = [1, -1]
+    vector = [0, 0]
+    while target_not_found:
+        if (sim[active_sand_coord[0]+potential_vector[0], active_sand_coord[1]+potential_vector[1]] == '.') and \
+            (sim[active_sand_coord[0]+potential_vector[0], active_sand_coord[1]+potential_vector[1]+1] != '.') and \
+                (active_sand_coord[0]+potential_vector[0]-1 < sim.shape[0]):
+            potential_vector = [potential_vector[0]+1, potential_vector[1]-1]
+            print('loop')
+        else:
+            target_not_found = False
+            break
+
+    potential_vector = [potential_vector[0]-1, potential_vector[1]+1]
+
+    vector = potential_vector
+    return sim, vector
 
 def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grain_count: int, spawn_point: list[int], puzzle_part: int) -> tuple[np.ndarray, bool, tuple[int], int, bool, list[int], bool]:
     global print_sim_toggle
@@ -124,22 +142,7 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], grai
                 if (sim[active_sand_coord[0]+1, active_sand_coord[1]-1] == '.'):
                     active_sand_found = True
                     fell_to_the_left = True
-                    target_not_found = True
-                    potential_vector = [1, -1]
-                    vector = [0, 0]
-                    while target_not_found:
-                        if (sim[active_sand_coord[0]+potential_vector[0], active_sand_coord[1]+potential_vector[1]] == '.') and \
-                            (sim[active_sand_coord[0]+potential_vector[0], active_sand_coord[1]+potential_vector[1]+1] != '.') and \
-                                (active_sand_coord[0]+potential_vector[0]-1 < dim[0]):
-                            potential_vector = [potential_vector[0]+1, potential_vector[1]-1]
-                            print('loop')
-                        else:
-                            target_not_found = False
-                            break
-
-                    potential_vector = [potential_vector[0]-1, potential_vector[1]+1]
-
-                    vector = potential_vector
+                    map, vector = find_end_of_slope(sim, active_sand_coord)
                     print('sand can fall to the left')
 
             else:
@@ -247,7 +250,7 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
 
 
 rocks = []
-with open('day_14_input_optimization_test.txt') as file:
+with open('day_14_input_example.txt') as file:
     for line in file:
         stripped_line = line.strip()
         points = stripped_line.split('->')
