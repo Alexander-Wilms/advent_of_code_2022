@@ -78,7 +78,7 @@ def print_sim(sim: np.ndarray, first_col: int):
         # print()
 
 
-def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spawn_point: list[int], puzzle_part: int) -> tuple[np.ndarray, bool, tuple[int], int, bool, list[int], bool]:
+def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spawn_point: list[int], puzzle_part: int) -> tuple[np.ndarray, bool, tuple[int], bool, bool]:
     if print_sim_toggle:
         # os.system('clear')
         print_sim(sim, min_col)
@@ -92,17 +92,15 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spaw
     # print(f"{active_sand_coord=}")
 
     in_steady_state = False
-    if (sim[spawn_point[0], spawn_point[1]] == 'o'):
-        spawn_point = deepcopy(default_spawn_point)
 
     # print(f"{spawn_point=}")
 
     # check if active grain of sand has come to a halt
     if active_sand_coord[0]+1 < dim[0]:
 
-        # check if cell below is free
-        # if sim[active_sand_coord[0], active_sand_coord[1]] == 'o' and
+        
         if sim[active_sand_coord[0]+1, active_sand_coord[1]] == '.':
+            # check if cell below is free
             # spawn_point = [active_sand_coord[0], active_sand_coord[1]]
             #print('sand can fall freely')
             active_sand_found = True
@@ -124,7 +122,6 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spaw
                     #map, vector = find_end_of_slope(sim, active_sand_coord, -1)
                     vector = [1, -1]
                     #print('sand can fall to the left')
-
             else:
                 active_sand_found = False
                 sim[active_sand_coord[0], active_sand_coord[1]] = '.'
@@ -167,28 +164,22 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spaw
                             (sim[default_spawn_point[0]+1, default_spawn_point[1]+1]) != '.':
                         spawn_point_reached = True
                         #print('spawn point reached')
-                        return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point, spawn_point_reached
-
-        else:
-            # so the diagram doesn't jump around
-            # print()
-            pass
+                        return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point_reached
     else:
         # simulate current grain
-
         sim[active_sand_coord[0], active_sand_coord[1]] = '.'
         new_coords = [active_sand_coord[0]+vector[0], active_sand_coord[1]+vector[1]]
         #print(f"grain 'x' is falling to coord [{new_coords[0]}, {new_coords[1]}]")
         if new_coords[0] >= dim[0] and puzzle_part == 1:
             #print('sand grain leaves sim')
             in_steady_state = True
-            return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point, spawn_point_reached
+            return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point_reached
         sim[new_coords[0], new_coords[1]] = 'o'
         active_sand_coord = [new_coords[0], new_coords[1]]
 
-    spawn_point_reached = False
-    in_steady_state = False
-    return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point, spawn_point_reached
+    #spawn_point_reached = False
+    #in_steady_state = False
+    return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point_reached
 
 
 def count_grains(sim: np.ndarray) -> int:
@@ -267,7 +258,7 @@ sim[spawn_point[0], spawn_point[1]] = 'o'
 active_sand_coord = [spawn_point[0], spawn_point[1]]
 
 while sim_not_finished:
-    sim, sim_not_finished, active_sand_coord, in_steady_state, spawn_point, spawn_point_reached = time_step(sim, min_col, active_sand_coord, spawn_point, puzzle_part)
+    sim, sim_not_finished, active_sand_coord, in_steady_state, spawn_point_reached = time_step(sim, min_col, active_sand_coord, spawn_point, puzzle_part)
     if puzzle_part == 1 and in_steady_state:
         break
     if puzzle_part == 2 and spawn_point_reached:
