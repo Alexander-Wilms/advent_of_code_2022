@@ -1,9 +1,10 @@
-import os
+#import os
 from copy import deepcopy
 from datetime import datetime
 from pprint import pprint
 
 import numpy as np
+
 
 def create_sim(rocks: list[list[int]], puzzle_part: int) -> tuple[np.ndarray, int]:
     columns = []
@@ -41,8 +42,10 @@ def create_sim(rocks: list[list[int]], puzzle_part: int) -> tuple[np.ndarray, in
 
     return sim, min_col
 
+
 def col_to_idx(col: int, first_col: int) -> int:
     return col-first_col
+
 
 def print_sim(sim: np.ndarray, first_col: int):
     dimensions = sim.shape
@@ -66,7 +69,7 @@ def print_sim(sim: np.ndarray, first_col: int):
         for col in range(dimensions[1]):
             if row < len(col_str_list[col]):
                 print(col_str_list[col][row]+' ', end='')
-        print()
+        # print()
 
     for row in range(start_drawing_at_row, min(dimensions[0], stop_drawing_at_row)):
         print(str(row).rjust(len(str(dimensions[0]))), end=' ')
@@ -74,11 +77,12 @@ def print_sim(sim: np.ndarray, first_col: int):
         #    print(sim[row, col], end=' ')
         # print()
 
+
 def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spawn_point: list[int], puzzle_part: int) -> tuple[np.ndarray, bool, tuple[int], int, bool, list[int], bool]:
     if print_sim_toggle:
-        os.system('clear')
+        # os.system('clear')
         print_sim(sim, min_col)
-    print()
+    # print()
     dim = sim.shape
     active_sand_found = False
     spawn_point_reached = False
@@ -150,7 +154,7 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spaw
     if not active_sand_found:
         if not in_steady_state:
             #print('spawn new sand')
-            print()
+            # print()
             sim[spawn_point[0], spawn_point[1]] = 'o'
             active_sand_coord = [spawn_point[0], spawn_point[1]]
             active_sand_found = True
@@ -167,7 +171,8 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spaw
 
         else:
             # so the diagram doesn't jump around
-            print()
+            # print()
+            pass
     else:
         # simulate current grain
 
@@ -177,7 +182,6 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spaw
         if new_coords[0] >= dim[0] and puzzle_part == 1:
             #print('sand grain leaves sim')
             in_steady_state = True
-            # sustract 1 because an additional grain was spawned (the first one to flow outside the simulation)
             return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point, spawn_point_reached
         sim[new_coords[0], new_coords[1]] = 'o'
         active_sand_coord = [new_coords[0], new_coords[1]]
@@ -186,6 +190,7 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spaw
     in_steady_state = False
     return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point, spawn_point_reached
 
+
 def count_grains(sim: np.ndarray) -> int:
     grain_count = 0
     for row in range(sim.shape[0]):
@@ -193,6 +198,7 @@ def count_grains(sim: np.ndarray) -> int:
             if sim[row, col] == 'o' or sim[row, col] == 'x':
                 grain_count += 1
     return grain_count
+
 
 def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
     filled_rocks = []
@@ -229,6 +235,7 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
             # pprint(point)
         filled_rocks.append(filled_rock)
     return filled_rocks
+
 
 start = datetime.now()
 
@@ -267,16 +274,6 @@ while sim_not_finished:
         break
 
 # print_sim(sim, min_col)
-if puzzle_part == 1:
-    if in_steady_state:
-        print('steady state reached')
-    else:
-        print('1: error')
-if puzzle_part == 2:
-    if spawn_point_reached:
-        print('spawn point reached')
-    else:
-        print('2: error')
 
 print('solution to part '+str(puzzle_part)+': '+str(count_grains(sim)))
 print("time: "+str(datetime.now()-start))
