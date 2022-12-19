@@ -106,7 +106,7 @@ def find_optimal_path(time: int, max_time: int, current_valve: str, path: list[s
             max_pressure = 0
             for pot_next_valve_name in possible_tunnels:
                 for potential_open_valve in [0, 1]:
-                    if (potential_open_valve and pot_next_valve_name not in open_valves.keys() and pot_next_valve_name == current_valve) or \
+                    if (potential_open_valve and pot_next_valve_name not in open_valves.keys() and pot_next_valve_name == current_valve and valves[pot_next_valve_name].flow_rate > 0) or \
                             (not potential_open_valve):
                         potential_next_valve_names.append(pot_next_valve_name)
                         pot_paths[pot_next_valve_name][potential_open_valve], \
@@ -174,7 +174,7 @@ with open('day_16_example.txt') as file:
             first_valve_found = True
 
 
-if False:
+if True:
     # example
     path_example = ['AA', 'DD', 'DD', 'CC', 'BB', 'BB', 'AA', 'II', 'JJ', 'JJ', 'II', 'AA', 'DD', 'EE', 'FF', 'GG', 'HH', 'HH', 'GG', 'FF', 'EE', 'EE', 'DD', 'CC', 'CC', 'CC', 'CC', 'CC', 'CC', 'CC']
     open_valves_example = {'DD': 2, 'BB': 5, 'JJ': 9, 'HH': 17, 'EE': 21, 'CC': 24}
@@ -185,7 +185,7 @@ if False:
 
     print('==========================================================================================')
 
-if False:
+if True:
     # unit test
     pprint(valves)
     path_result, open_valves = find_optimal_path(0, 1, first_valve, [], 0, 0, dict())
@@ -197,13 +197,13 @@ if False:
 
     print('==========================================================================================')
 
-if False:
+if True:
     open_valves = {'DD': 3}
     pprint(get_total_pressure(4, open_valves))
 
     print('==========================================================================================')
 
-if False:
+if True:
     path_input = []
     path_result, open_valves = find_optimal_path(0, 4, first_valve, path_input, 0, 0, dict())
     pprint(open_valves)
@@ -219,8 +219,8 @@ if False:
 
 if True:
     path_input = []
-    path_result, open_valves = find_optimal_path(0, 9, first_valve, path_input, 0, 0, dict())
-    if False:
+    path_result, open_valves = find_optimal_path(0, 6, first_valve, path_input, 0, 0, dict())
+    if True:
         pprint(open_valves)
         pprint(path_result)
         total_pressure = get_total_pressure(6, open_valves)
@@ -234,7 +234,7 @@ if True:
 
 
 # actual input
-if False:
+if True:
     qpprint(valves)
     path, open_valves = find_optimal_path(0, 30, first_valve, [], 0, 0, dict())
     pprint(path)
