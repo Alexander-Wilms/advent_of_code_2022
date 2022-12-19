@@ -40,35 +40,79 @@ def create_graph(valves: dict[str, Valve]) -> nx.Graph:
     for valve_name, valve in valves.items():
         G.add_node(valve_name, weight=valve.flow_rate)
         for connected_valve in valve.tunnels:
-            G.add_edge(valve_name, connected_valve)
+            G.add_edge(valve_name, connected_valve, weight=1)
     return G
 
 
 def print_graph(G: nx.Graph, axs):
     seed = 31
     pos = nx.spring_layout(G, seed=seed)
-    try:
-        labels = {n: G.nodes[n]['weight'] for n in G.nodes}
-        colors = [G.nodes[n]['weight'] for n in G.nodes]
-        nx.draw(G, with_labels=True, labels=labels, node_color=colors, ax=axs, pos=pos)
-    except:
-        nx.draw(G, with_labels=True, ax=axs, pos=pos)
+    node_names = []
+    for node, _ in G.nodes.items():
+        node_names.append(node)
+    node_weights = nx.get_node_attributes(G, "weight")
+    node_labels = dict()
+    for idx in range(len(node_names)):
+        node_labels[node_names[idx]] = str(node_names[idx])+': '+str(node_weights[node_names[idx]])
+    pprint(node_weights)
+    pprint(node_labels)
+    node_colors = [G.nodes[n]['weight'] for n in G.nodes]
+    nx.draw(G, with_labels=True, labels=node_labels, node_color=node_colors, ax=axs, pos=pos)
+    edge_labels = nx.get_edge_attributes(G, "weight")
+    nx.draw_networkx_edge_labels(G, pos, edge_labels, ax=axs)
 
 
 def collapse_graph_2(G: nx.Graph) -> nx.Graph:
     C = deepcopy(G)
     # https://stackoverflow.com/a/56933420/2278742
     for node in ['AA', 'FF', 'GG', 'II']:
-        C.add_edges_from(
-            it.product(
-                C.neighbors(node),
-                C.neighbors(node)
-            )
-        )
+        for edge in it.product(C.neighbors(node), C.neighbors(node)):
+            if edge[0] is not edge[1]:
+                pprint(edge)
+                #edge_weights = nx.get_edge_attributes(C, "weight")
+                # pprint(edge_weights)
+                #edge_weight_1 = edge_weights[sorted((edge[0], node))]
+                #edge_weight_2 = edge_weights[sorted((edge[1], node))]
+                edge_weight_from = C.get_edge_data(edge[0], node)['weight']
+                edge_weight_to = C.get_edge_data(edge[1], node)['weight']
+                pprint(edge_weight_from)
+                pprint(edge_weight_to)
+                C.add_edge(edge[0], edge[1], weight=edge_weight_from+edge_weight_to)
         C.remove_node(node)
     # https://stackoverflow.com/a/49428652/2278742
-    C.remove_edges_from(nx.selfloop_edges(C))
+    # C.remove_edges_from(nx.selfloop_edges(C))
     return C
+
+
+def simplifyGraph(G):
+    ''' Loop over the graph until all nodes of degree 2 have been removed and their incident edges fused '''
+
+    g = G.copy()
+
+    while any(weight == 0 for _, weight in g.nodes.data("weight")):
+
+        g0 = g.copy()  # <- simply changing g itself would cause error `dictionary changed size during iteration`
+        for node, degree in g.degree():
+            if degree == 2:
+
+                if g.is_directed():  # <-for directed graphs
+                    a0, b0 = list(g0.in_edges(node))[0]
+                    a1, b1 = list(g0.out_edges(node))[0]
+
+                else:
+                    edges = g0.edges(node)
+                    edges = list(edges.__iter__())
+                    a0, b0 = edges[0]
+                    a1, b1 = edges[1]
+
+                e0 = a0 if a0 != node else b0
+                e1 = a1 if a1 != node else b1
+
+                g0.remove_node(node)
+                g0.add_edge(e0, e1)
+        g = g0
+
+    return g
 
 
 def compute(useful_valves):
