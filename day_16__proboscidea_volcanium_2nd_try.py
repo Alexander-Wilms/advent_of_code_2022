@@ -9,7 +9,7 @@ import networkx as nx
 import numpy as np
 from alive_progress import alive_it
 
-seed = 31
+seed = 42
 np.random.seed(seed)
 
 
@@ -45,82 +45,57 @@ def create_graph(valves: dict[str, Valve]) -> nx.Graph:
 
 
 def print_graph(G: nx.Graph, axs):
-    seed = 31
-    pos = nx.spring_layout(G, seed=seed)
+    # https://www.python-graph-gallery.com/322-network-layout-possibilities
+    pos = nx.fruchterman_reingold_layout(G, seed=seed)
     node_names = []
     for node, _ in G.nodes.items():
         node_names.append(node)
     node_weights = nx.get_node_attributes(G, "weight")
     node_labels = dict()
-    for idx in range(len(node_names)):
-        node_labels[node_names[idx]] = str(node_names[idx])+': '+str(node_weights[node_names[idx]])
+    for node in node_names:
+        node_labels[node] = str(node)+': '+str(node_weights[node])
     pprint(node_weights)
     pprint(node_labels)
     node_colors = [G.nodes[n]['weight'] for n in G.nodes]
-    nx.draw(G, with_labels=True, labels=node_labels, node_color=node_colors, ax=axs, pos=pos)
+    pprint(node_colors)
+    nx.draw(G, pos=pos, with_labels=True, labels=node_labels, node_color=node_colors, ax=axs, node_shape='s', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.2'))
     edge_labels = nx.get_edge_attributes(G, "weight")
-    nx.draw_networkx_edge_labels(G, pos, edge_labels, ax=axs)
+    nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=edge_labels, ax=axs)
 
 
-def collapse_graph_2(G: nx.Graph) -> nx.Graph:
+def collapse_graph(G: nx.Graph, first_valve: str) -> nx.Graph:
     C = deepcopy(G)
     # https://stackoverflow.com/a/56933420/2278742
-    for node in ['AA', 'FF', 'GG', 'II']:
-        for edge in it.product(C.neighbors(node), C.neighbors(node)):
-            if edge[0] is not edge[1]:
-                pprint(edge)
-                #edge_weights = nx.get_edge_attributes(C, "weight")
-                # pprint(edge_weights)
-                #edge_weight_1 = edge_weights[sorted((edge[0], node))]
-                #edge_weight_2 = edge_weights[sorted((edge[1], node))]
-                edge_weight_from = C.get_edge_data(edge[0], node)['weight']
-                edge_weight_to = C.get_edge_data(edge[1], node)['weight']
-                pprint(edge_weight_from)
-                pprint(edge_weight_to)
-                C.add_edge(edge[0], edge[1], weight=edge_weight_from+edge_weight_to)
-        C.remove_node(node)
-    # https://stackoverflow.com/a/49428652/2278742
-    # C.remove_edges_from(nx.selfloop_edges(C))
+    for node, node_data in G.nodes.items():
+        if node is not first_valve:
+            if node_data['weight'] == 0:
+                for edge in it.product(C.neighbors(node), C.neighbors(node)):
+                    if edge[0] is not edge[1]:
+                        edge_weight_from = C.get_edge_data(edge[0], node)['weight']
+                        edge_weight_to = C.get_edge_data(edge[1], node)['weight']
+                        edge_weight_sum = edge_weight_from+edge_weight_to
+                        print(f"replacing {node} with edge from {edge[0]} to {edge[1]} of weight {edge_weight_from}+{edge_weight_to}={edge_weight_sum}")
+                        C.add_edge(edge[0], edge[1], weight=edge_weight_from+edge_weight_to)
+                C.remove_node(node)
     return C
 
 
-def simplifyGraph(G):
-    ''' Loop over the graph until all nodes of degree 2 have been removed and their incident edges fused '''
+def compute(valves, starting_node, is_collapsed: bool):
+    useful_valve_names = []
+    for node, node_data in valves.nodes.items():
+        if node_data['weight'] > 0:
+            useful_valve_names.append(node)
 
-    g = G.copy()
+    useful_valve_names = sorted(useful_valve_names)
 
-    while any(weight == 0 for _, weight in g.nodes.data("weight")):
+    # useful_valve_names.remove(starting_node)
 
-        g0 = g.copy()  # <- simply changing g itself would cause error `dictionary changed size during iteration`
-        for node, degree in g.degree():
-            if degree == 2:
+    # pprint(useful_valve_names)
 
-                if g.is_directed():  # <-for directed graphs
-                    a0, b0 = list(g0.in_edges(node))[0]
-                    a1, b1 = list(g0.out_edges(node))[0]
-
-                else:
-                    edges = g0.edges(node)
-                    edges = list(edges.__iter__())
-                    a0, b0 = edges[0]
-                    a1, b1 = edges[1]
-
-                e0 = a0 if a0 != node else b0
-                e1 = a1 if a1 != node else b1
-
-                g0.remove_node(node)
-                g0.add_edge(e0, e1)
-        g = g0
-
-    return g
-
-
-def compute(useful_valves):
-    useful_valve_names = list(useful_valves.keys())
     number_of_usefule_valves = len(useful_valve_names)
     number_of_permutations = factorial(number_of_usefule_valves)
 
-    pprint(number_of_permutations)
+    # pprint(number_of_permutations)
 
     # https://stackoverflow.com/questions/6503388/prevent-memory-error-in-itertools-permutation
     permutations_iterator = it.permutations(useful_valve_names)
@@ -129,13 +104,12 @@ def compute(useful_valves):
 
     # with alive_it(permutations_iterator, dual_line=False, title='Calculating possible permutations') as bar:
     # pprint(useful_valves)
-
-    starting_node = 'AA'
     max_time = 30
 
     possible_solutions = []
     count = 0
-    for permutation in alive_it(permutations_iterator):
+    for permutation in alive_it(permutations_iterator, total=number_of_permutations):
+        pprint(permutation)
         #print(f"{count/number_of_permutations*100:.0f} %")
         count += 1
         # pprint(permutation)
@@ -148,10 +122,21 @@ def compute(useful_valves):
             else:
                 source = permutation[idx]
                 target = permutation[idx+1]
-            shortest_path = nx.shortest_path(graph, source=source, target=target)
+            if is_collapsed:
+                # collapsed graph has weighted edges, so we need dijkstra
+                cheapest_path = nx.dijkstra_path(valves, source=source, target=target)
+                path_cost = nx.path_weight(valves, cheapest_path, 'weight')+1
+            else:
+                try:
+                    cheapest_path = nx.shortest_path(useful_valves, source=source, target=target)
+                    path_cost = len(cheapest_path)+2
+                except:
+                    cheapest_path = nx.shortest_path(valves, source=source, target=target)
+                    path_cost = len(cheapest_path)
+            #print(f"cheapest path from {source} to {target} is {cheapest_path} with a cost of {path_cost}")
             # pprint(shortest_path)
             # add 1 because it takes 1 minute to open the valve
-            time += len(shortest_path)
+            time += path_cost
             if time <= max_time:
                 possible_solution[time] = target
         possible_solutions.append(possible_solution)
@@ -160,9 +145,6 @@ def compute(useful_valves):
 
     return possible_solutions
 
-
-#nx.draw(G, with_labels=True)
-plt.show(block=False)
 
 start = timeit.default_timer()
 input_file = 'day_16_example.txt'
@@ -204,15 +186,23 @@ for valve_name, valve in valves.items():
         useful_valves[valve_name] = valve
 
 graph = create_graph(valves)
-graph_collapsed = collapse_graph_2(graph)
 
 fig, axs = plt.subplots(ncols=2)
+graph_collapsed = collapse_graph(graph, first_valve)
 print_graph(graph, axs[0])
 print_graph(graph_collapsed, axs[1])
 
-#pprint(nx.shortest_path(G, source='BB', target='II'))
+is_collapsed = 1
+if is_collapsed:
+    graph_to_analyze = graph_collapsed
+else:
+    graph_to_analyze = graph
 
-possible_solutions = compute(useful_valves)
+plt.margins(0.0)
+fig.tight_layout()
+plt.show(block=False)
+
+possible_solutions = compute(graph_to_analyze, first_valve, is_collapsed)
 
 max_possible_pressure = 0
 solution_for_max_possible_pressure = dict()
