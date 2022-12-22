@@ -4,8 +4,9 @@ from types import NoneType
 
 import matplotlib.pyplot as plt
 import networkx as nx
+from networkx.drawing.nx_pydot import graphviz_layout
 
-g = nx.Graph()
+g = nx.DiGraph()
 
 known_values = dict()
 unknown_values = dict()
@@ -36,8 +37,8 @@ with open('day_21_input.txt') as file:
 pprint(known_values)
 pprint(unknown_values)
 
-
-nx.draw(g, with_labels=True, node_color='w', edge_color='b')
+pos = graphviz_layout(g, prog="dot")
+nx.draw(g, pos, with_labels=True, node_color='w', edge_color='b')
 ax = plt.gca()
 ax.collections[0].set_edgecolor("#000000")
 plt.show()
