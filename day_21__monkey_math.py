@@ -5,10 +5,10 @@ from types import NoneType
 
 import matplotlib.pyplot as plt
 import networkx as nx
+from alive_progress import alive_bar
 from networkx.drawing.nx_pydot import graphviz_layout
 from sympy import Symbol
 from sympy.solvers import solve
-from alive_progress import alive_bar
 
 
 def draw_tree(G, axs, fig_idx):
@@ -25,13 +25,12 @@ def draw_tree(G, axs, fig_idx):
     axs[fig_idx].collections[0].set_edgecolor("#000000")
 
 
-def simplify_tree(G: nx.DiGraph, puzzle_part: int, id_of_number_to_yell='') -> nx.DiGraph:
+def simplify_tree(G: nx.DiGraph, id_of_number_to_yell='') -> nx.DiGraph:
     G_working_copy = deepcopy(G)
     G_simplified = nx.DiGraph()
 
-    if puzzle_part == 2:
-        G_working_copy.nodes['root']['value'] = G_working_copy.nodes['root']['value'].replace('+', '-').replace('*', '-').replace('/', '-')
-        G_working_copy.nodes[id_of_number_to_yell]['value'] = 'x'
+    G_working_copy.nodes['root']['value'] = G_working_copy.nodes['root']['value'].replace('+', '$').replace('*', '$').replace('/', '$')
+    G_working_copy.nodes[id_of_number_to_yell]['value'] = 'x'
 
     done = False
     with alive_bar(G.number_of_nodes()-1) as bar:
@@ -52,11 +51,7 @@ def simplify_tree(G: nx.DiGraph, puzzle_part: int, id_of_number_to_yell='') -> n
                     for successor in nx.DiGraph.successors(G_working_copy, node):
                         successor_value = G_working_copy.nodes[successor]['value']
 
-                    if puzzle_part == 1:
-                        replacement = successor_value.replace(node, str(eval(node_value)))
-                    else:
-                        node_value = node_value.replace(' ', '')
-                        replacement = successor_value.replace(node, '('+node_value+')')
+                    replacement = successor_value.replace(node, '('+node_value+')')
 
                     G_simplified.remove_node(node)
                     bar()
@@ -65,6 +60,19 @@ def simplify_tree(G: nx.DiGraph, puzzle_part: int, id_of_number_to_yell='') -> n
                 if G_simplified.number_of_nodes() == 1:
                     done = True
 
+    return G_simplified
+
+
+def get_solution(G: nx.DiGraph) -> tuple[nx.DiGraph, nx.DiGraph]:
+    variable_part_2 = 'humn'
+    G_simplified = simplify_tree(G, variable_part_2)
+    equation = G_simplified.nodes['root']['value']
+    solution_part_1 = eval(equation.replace('$', '+').replace('x', G.nodes[variable_part_2]['value']))
+    solution_part_2 = solve(equation.replace('$', '-'), Symbol('x'))[0]
+    G_simplified.nodes['root']['value'] = f"{solution_part_1}\n{solution_part_2}"
+    pprint(G_simplified.nodes)
+    print('solution to part 1: '+str(solution_part_1))
+    print('solution to part 2: '+str(solution_part_2))
     return G_simplified
 
 
@@ -98,27 +106,12 @@ with open('day_21_input.txt') as file:
 pprint(known_values)
 pprint(unknown_values)
 
-G_simplified_puzzle_part_1 = simplify_tree(G, 1)
-solution_part_1 = eval(G_simplified_puzzle_part_1.nodes['root']['value'])
-G_simplified_puzzle_part_1.nodes['root']['value'] = solution_part_1
-pprint(G_simplified_puzzle_part_1.nodes)
+G_simplified = get_solution(G)
 
-
-G_simplified_puzzle_part_2 = simplify_tree(G, 2, 'humn')
-equation = G_simplified_puzzle_part_2.nodes['root']['value'].strip()
-pprint(equation)
-x = Symbol('x')
-solution_part_2 = solve(equation, x)
-pprint(G_simplified_puzzle_part_2.nodes)
-
-print('solution to part 1: '+str(solution_part_1))
-print('solution to part 2: '+str(solution_part_2))
-
-fig, axs = plt.subplots(ncols=3)
+fig, axs = plt.subplots(ncols=2)
 plt.margins(0.0)
 draw_tree(G, axs, 0)
-draw_tree(G_simplified_puzzle_part_1, axs, 1)
-draw_tree(G_simplified_puzzle_part_2, axs, 2)
+draw_tree(G_simplified, axs, 1)
 fig.tight_layout()
 
 plt.show()
