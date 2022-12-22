@@ -8,6 +8,7 @@ import networkx as nx
 from networkx.drawing.nx_pydot import graphviz_layout
 from sympy import Symbol
 from sympy.solvers import solve
+from alive_progress import alive_bar
 
 
 def draw_tree(G, axs, fig_idx):
@@ -33,34 +34,36 @@ def simplify_tree(G: nx.DiGraph, puzzle_part: int, id_of_number_to_yell='') -> n
         G_working_copy.nodes[id_of_number_to_yell]['value'] = 'x'
 
     done = False
-    while not done:
-        G_simplified = deepcopy(G_working_copy)
-        for node, _ in G_working_copy.nodes.items():
+    with alive_bar(G.number_of_nodes()-1) as bar:
+        while not done:
+            G_simplified = deepcopy(G_working_copy)
+            for node, _ in G_working_copy.nodes.items():
 
-            predecessor_count = 0
-            for _ in nx.DiGraph.predecessors(G_working_copy, node):
-                predecessor_count += 1
+                predecessor_count = 0
+                for _ in nx.DiGraph.predecessors(G_working_copy, node):
+                    predecessor_count += 1
 
-            if predecessor_count == 0 and node != 'root':
-                # print('will be removed: '+node)
+                if predecessor_count == 0 and node != 'root':
+                    # print('will be removed: '+node)
 
-                node_value = G_working_copy.nodes[node]['value']
+                    node_value = G_working_copy.nodes[node]['value']
 
-                # there should only be one successor
-                for successor in nx.DiGraph.successors(G_working_copy, node):
-                    successor_value = G_working_copy.nodes[successor]['value']
+                    # there should only be one successor
+                    for successor in nx.DiGraph.successors(G_working_copy, node):
+                        successor_value = G_working_copy.nodes[successor]['value']
 
-                if puzzle_part == 1:
-                    replacement = successor_value.replace(node, str(eval(node_value)))
-                else:
-                    node_value = node_value.replace(' ', '')
-                    replacement = successor_value.replace(node, '('+node_value+')')
+                    if puzzle_part == 1:
+                        replacement = successor_value.replace(node, str(eval(node_value)))
+                    else:
+                        node_value = node_value.replace(' ', '')
+                        replacement = successor_value.replace(node, '('+node_value+')')
 
-                G_simplified.remove_node(node)
-                G_simplified.nodes[successor]['value'] = replacement
-            G_working_copy = deepcopy(G_simplified)
-            if G_simplified.number_of_nodes() == 1:
-                done = True
+                    G_simplified.remove_node(node)
+                    bar()
+                    G_simplified.nodes[successor]['value'] = replacement
+                G_working_copy = deepcopy(G_simplified)
+                if G_simplified.number_of_nodes() == 1:
+                    done = True
 
     return G_simplified
 
