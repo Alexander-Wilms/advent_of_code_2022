@@ -6,6 +6,8 @@ from types import NoneType
 import matplotlib.pyplot as plt
 import networkx as nx
 from networkx.drawing.nx_pydot import graphviz_layout
+from sympy import Symbol
+from sympy.solvers import solve
 
 
 def draw_tree(G, axs, fig_idx):
@@ -16,9 +18,51 @@ def draw_tree(G, axs, fig_idx):
     node_labels = dict()
     for node_name in node_names:
         node_labels[node_name] = str(node_name)+': '+str(node_weights[node_name])
+    # https://stackoverflow.com/a/57512902/2278742
     pos = graphviz_layout(G, prog='dot')
     nx.draw(G, pos=pos, with_labels=True, node_color='w', edge_color='b', labels=node_labels, node_shape='s', bbox=dict(facecolor="white", edgecolor='black', boxstyle='round,pad=0.2'), ax=axs[fig_idx])
     axs[fig_idx].collections[0].set_edgecolor("#000000")
+
+
+def simplify_tree(G: nx.DiGraph, puzzle_part: int, id_of_number_to_yell='') -> nx.DiGraph:
+    G_working_copy = deepcopy(G)
+    G_simplified = nx.DiGraph()
+
+    if puzzle_part == 2:
+        G_working_copy.nodes['root']['value'] = G_working_copy.nodes['root']['value'].replace('+', '-').replace('*', '-').replace('/', '-')
+        G_working_copy.nodes[id_of_number_to_yell]['value'] = 'x'
+
+    done = False
+    while not done:
+        G_simplified = deepcopy(G_working_copy)
+        for node, _ in G_working_copy.nodes.items():
+
+            predecessor_count = 0
+            for _ in nx.DiGraph.predecessors(G_working_copy, node):
+                predecessor_count += 1
+
+            if predecessor_count == 0 and node != 'root':
+                # print('will be removed: '+node)
+
+                node_value = G_working_copy.nodes[node]['value']
+
+                # there should only be one successor
+                for successor in nx.DiGraph.successors(G_working_copy, node):
+                    successor_value = G_working_copy.nodes[successor]['value']
+
+                if puzzle_part == 1:
+                    replacement = successor_value.replace(node, str(eval(node_value)))
+                else:
+                    node_value = node_value.replace(' ', '')
+                    replacement = successor_value.replace(node, '('+node_value+')')
+
+                G_simplified.remove_node(node)
+                G_simplified.nodes[successor]['value'] = replacement
+            G_working_copy = deepcopy(G_simplified)
+            if G_simplified.number_of_nodes() == 1:
+                done = True
+
+    return G_simplified
 
 
 G = nx.DiGraph()
@@ -26,7 +70,7 @@ G = nx.DiGraph()
 known_values = dict()
 unknown_values = dict()
 
-with open('day_21_example.txt') as file:
+with open('day_21_input.txt') as file:
     for line in file:
         line_stripped = line.strip()
         # print(line_stripped)
@@ -51,43 +95,27 @@ with open('day_21_example.txt') as file:
 pprint(known_values)
 pprint(unknown_values)
 
-G_working_copy = deepcopy(G)
-G_simplified = nx.DiGraph()
+G_simplified_puzzle_part_1 = simplify_tree(G, 1)
+solution_part_1 = eval(G_simplified_puzzle_part_1.nodes['root']['value'])
+G_simplified_puzzle_part_1.nodes['root']['value'] = solution_part_1
+pprint(G_simplified_puzzle_part_1.nodes)
 
-done = False
 
-while not done:
-    G_simplified = deepcopy(G_working_copy)
-    for node, _ in G_working_copy.nodes.items():
-        predecessor_count = 0
-        for _ in nx.DiGraph.predecessors(G_working_copy, node):
-            predecessor_count += 1
+G_simplified_puzzle_part_2 = simplify_tree(G, 2, 'humn')
+equation = G_simplified_puzzle_part_2.nodes['root']['value'].strip()
+pprint(equation)
+x = Symbol('x')
+solution_part_2 = solve(equation, x)
+pprint(G_simplified_puzzle_part_2.nodes)
 
-        if predecessor_count == 0 and node != 'root':
-            print('will be removed: '+node)
+print('solution to part 1: '+str(solution_part_1))
+print('solution to part 2: '+str(solution_part_2))
 
-            node_value = G_working_copy.nodes[node]['value']
-
-            # there should only be one successor
-            for successor in nx.DiGraph.successors(G_working_copy, node):
-                successor_value = G_working_copy.nodes[successor]['value']
-
-            replacement = successor_value.replace(node, str(eval(node_value)))
-
-            G_simplified.remove_node(node)
-            G_simplified.nodes[successor]['value'] = replacement
-        G_working_copy = deepcopy(G_simplified)
-        if G_simplified.number_of_nodes() == 1:
-            done = True
-
-G_simplified.nodes['root']['value'] = eval(G_simplified.nodes['root']['value'])
-pprint(G_simplified.nodes)
-
-print('solution to part 1: '+str(G_simplified.nodes['root']['value']))
-fig, axs = plt.subplots(ncols=2)
+fig, axs = plt.subplots(ncols=3)
 plt.margins(0.0)
 draw_tree(G, axs, 0)
-draw_tree(G_simplified, axs, 1)
+draw_tree(G_simplified_puzzle_part_1, axs, 1)
+draw_tree(G_simplified_puzzle_part_2, axs, 2)
 fig.tight_layout()
 
 plt.show()
