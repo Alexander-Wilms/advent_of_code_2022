@@ -1,4 +1,5 @@
 import math
+from pprint import pprint
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -14,6 +15,7 @@ def get_nth_successor(G: nx.DiGraph, node: int, n: int) -> int:
         #print(f"-> {node}")
         return node
     else:
+        n = n % G.number_of_nodes()
         for successor in G.successors(node):
             pass
         return get_nth_successor(G, successor, n-1)
@@ -25,6 +27,7 @@ def get_nth_predecessor(G: nx.DiGraph, node: int, n: int) -> int:
         #print(f"-> {node}")
         return node
     else:
+        n = n % G.number_of_nodes()
         for predecessor in G.predecessors(node):
             pass
         return get_nth_predecessor(G, predecessor, n-1)
@@ -46,6 +49,16 @@ def print_sequence(G: nx.DiGraph, first: int):
     print('\n')
 
 
+def get_grove_coordinates(G: nx.DiGraph, idx_of_zero: int) -> int:
+    G.number_of_nodes()
+    summands = []
+    for coordinte_factor_idx_offset in [1000, 2000, 3000]:
+        factor = G.nodes[get_nth_successor(G, idx_of_zero, coordinte_factor_idx_offset)]['value']
+        summands.append(factor)
+        pprint(factor)
+    return sum(summands)
+
+
 sequence = []
 sequence_pointers = dict()
 
@@ -56,6 +69,8 @@ with open('day_20_example.txt') as file:
     for line in file:
         print(line.strip())
         number = int(line.strip())
+        if number == 0:
+            idx_of_zero = line_idx
         G.add_node(line_idx, value=number)
         sequence.append(number)
         sequence_pointers[line_idx] = number
@@ -122,5 +137,6 @@ for idx in range(len(sequence)):
 
     print_sequence(G, idx)
 
+pprint(get_grove_coordinates(G, idx_of_zero))
 
 plt.show()
