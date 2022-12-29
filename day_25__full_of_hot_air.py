@@ -14,6 +14,15 @@ def snafu_to_decimal(snafu: str) -> int:
     return decimal_value
 
 
+def solutions_to_snafu(solutions) -> str:
+    digits = {-2: '=', -1: '-', 0: '0', 1: '1', 2: '2'}
+    solutions_dict = solutions[0]
+    snafu = ''
+    for _,  val in solutions_dict.items():
+        snafu = digits[val]+snafu
+    return snafu
+
+
 decimal_values = []
 with open('day_25_example.txt') as file:
     for line in file:
@@ -29,4 +38,6 @@ pprint(sum(decimal_values))
 snafu_problem = Problem()
 snafu_problem.addVariables(['x3', 'x2', 'x1', 'x0'], [-2, -1, 0, 1, 2])
 snafu_problem.addConstraint(lambda x3, x2, x1, x0: x3*5**3+x2*5**2+x1*5**1+x0*5**0 == 107, ('x3', 'x2', 'x1', 'x0'))
-pprint(snafu_problem.getSolutions())
+solutions = snafu_problem.getSolutions()
+pprint(solutions)
+pprint(solutions_to_snafu(solutions))
