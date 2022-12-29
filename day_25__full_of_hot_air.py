@@ -15,16 +15,29 @@ def snafu_to_decimal(snafu: str) -> int:
 
 
 def decimal_to_snafu(decimal: int) -> str:
-    # pprint(decimal)
-    snafu_problem = Problem()
-    var_names = []
-    for snafu_digit in range(6):
-        var_name = 'x'+str(snafu_digit)
-        snafu_problem.addVariable(var_name, [-2, -1, 0, 1, 2])
-        var_names.append(var_name)
-    snafu_problem.addConstraint(lambda x5, x4, x3, x2, x1, x0: x5*5**5+x4*5**4+x3*5**3+x2*5**2+x1*5**1+x0*5**0 == decimal, var_names)
-    solution = snafu_problem.getSolution()
-    # pprint(solution)
+    snafu_digit = 0
+    solution = None
+
+    while isinstance(solution, type(None)):
+        snafu_problem = Problem()
+        equation_string = ' == '+str(decimal)
+        var_names = []
+        var_String = ''
+        equation_part = ''
+        for snafu in range(snafu_digit+1):
+            var_name = 'x'+str(snafu)
+            snafu_problem.addVariable(var_name, [-2, -1, 0, 1, 2])
+            var_names.append(var_name)
+            if snafu != 0:
+                var_String = ', '+var_String
+                equation_part = '+'+equation_part
+            var_String = var_name+var_String
+            equation_part = f"{var_name}*5**{snafu}{equation_part}"
+        lambda_string = 'lambda '+var_String+': '+equation_part+equation_string
+        snafu_problem.addConstraint(eval(lambda_string), var_names)
+        solution = snafu_problem.getSolution()
+        snafu_digit += 1
+
     snafu = solution_to_snafu(solution)
     return snafu
 
