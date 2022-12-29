@@ -14,30 +14,40 @@ def snafu_to_decimal(snafu: str) -> int:
     return decimal_value
 
 
-def solutions_to_snafu(solutions) -> str:
-    digits = {-2: '=', -1: '-', 0: '0', 1: '1', 2: '2'}
-    solutions_dict = solutions[0]
-    snafu = ''
-    for _,  val in solutions_dict.items():
-        snafu = digits[val]+snafu
+def decimal_to_snafu(decimal: int) -> str:
+    # pprint(decimal)
+    snafu_problem = Problem()
+    var_names = []
+    for snafu_digit in range(6):
+        var_name = 'x'+str(snafu_digit)
+        snafu_problem.addVariable(var_name, [-2, -1, 0, 1, 2])
+        var_names.append(var_name)
+    snafu_problem.addConstraint(lambda x5, x4, x3, x2, x1, x0: x5*5**5+x4*5**4+x3*5**3+x2*5**2+x1*5**1+x0*5**0 == decimal, var_names)
+    solution = snafu_problem.getSolution()
+    # pprint(solution)
+    snafu = solution_to_snafu(solution)
     return snafu
 
 
-decimal_values = []
+def solution_to_snafu(solution) -> str:
+    digits = {-2: '=', -1: '-', 0: '0', 1: '1', 2: '2'}
+    snafu = ''
+    for _,  val in solution.items():
+        snafu += digits[val]
+    # pprint(snafu)
+    return snafu.lstrip('0')
+
+
+decimal_values = dict()
 with open('day_25_example.txt') as file:
     for line in file:
-        decimal_values.append(snafu_to_decimal(line.strip()))
+        original_snafu = line.strip()
+        decimal_value = snafu_to_decimal(original_snafu)
+        reconstructed_snafu = decimal_to_snafu(decimal_value)
 
-pprint(decimal_values)
-pprint(sum(decimal_values))
+        print(f"{reconstructed_snafu} {decimal_value}")
 
 # solution can be found usin WolframAlpha with the following system of equations and inequalities:
 # x3*5^3+x2*5^2+x1*5^1+x0*5^0=107, abs(x3)<=2, abs(x2)<=2, abs(x1)<=2, abs(x0)<=2
 
 # solution to a snafu example using constraint
-snafu_problem = Problem()
-snafu_problem.addVariables(['x3', 'x2', 'x1', 'x0'], [-2, -1, 0, 1, 2])
-snafu_problem.addConstraint(lambda x3, x2, x1, x0: x3*5**3+x2*5**2+x1*5**1+x0*5**0 == 107, ('x3', 'x2', 'x1', 'x0'))
-solutions = snafu_problem.getSolutions()
-pprint(solutions)
-pprint(solutions_to_snafu(solutions))
