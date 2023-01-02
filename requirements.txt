@@ -1,6 +1,6 @@
 alive_progress
 colorama
-constraint
+python-constraint
 matplotlib
 netgraph
 networkx
