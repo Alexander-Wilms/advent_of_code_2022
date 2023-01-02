@@ -1,0 +1,9 @@
+alive_progress
+colorama
+constraint
+matplotlib
+netgraph
+networkx
+numpy
+python_constraint
+sympy
