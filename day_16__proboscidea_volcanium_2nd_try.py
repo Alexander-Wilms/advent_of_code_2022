@@ -44,9 +44,11 @@ def create_graph(valves: dict[str, Valve]) -> nx.Graph:
     return G
 
 
-def print_graph(G: nx.Graph, axs):
+def print_graph(G: nx.Graph, ax):
     # https://www.python-graph-gallery.com/322-network-layout-possibilities
-    pos = nx.fruchterman_reingold_layout(G, seed=seed)
+    #pos = nx.fruchterman_reingold_layout(G, seed=seed, iterations=1000)
+    pos = nx.spring_layout(G, iterations=1000)
+    ax.set_axis_off()
     node_names = []
     for node, _ in G.nodes.items():
         node_names.append(node)
@@ -58,9 +60,9 @@ def print_graph(G: nx.Graph, axs):
     pprint(node_labels)
     node_colors = [G.nodes[n]['weight'] for n in G.nodes]
     pprint(node_colors)
-    nx.draw(G, pos=pos, with_labels=True, labels=node_labels, node_color=node_colors, ax=axs, node_shape='s', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.2'))
+    nx.draw(G, pos=pos, with_labels=True, labels=node_labels, node_color=node_colors, cmap=plt.cm.gray, vmin=-max(node_colors), ax=ax, node_shape='s', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.2'))
     edge_labels = nx.get_edge_attributes(G, "weight")
-    nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=edge_labels, ax=axs)
+    nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=edge_labels, ax=ax)
 
 
 def collapse_graph(G: nx.Graph, first_valve: str) -> nx.Graph:
@@ -78,6 +80,47 @@ def collapse_graph(G: nx.Graph, first_valve: str) -> nx.Graph:
                         C.add_edge(edge[0], edge[1], weight=edge_weight_from+edge_weight_to)
                 C.remove_node(node)
     return C
+
+
+def determine_potential_pressures(valves: nx.Graph, current_valve, remaining_time, opened_valves: dict[int, str]) -> dict[str, int]:
+    potential_pressures = dict()
+    for node, node_data in valves.nodes.items():
+        if node not in opened_valves.values():
+            cheapest_path = nx.dijkstra_path(valves, source=current_valve, target=node)
+            path_cost = nx.path_weight(valves, cheapest_path, 'weight')+1
+            potential_pressure = max(0, node_data['weight']*(remaining_time-path_cost))
+            potential_pressures[potential_pressure] = node
+    return potential_pressures
+
+
+def find_path_recursive(valves: nx.Graph, source_valve, number_of_candidates, time, opened_valves) -> list[str]:
+    opened_valves = deepcopy(opened_valves)
+    opened_valves[time] = source_valve
+    indent = ''
+    for _ in range(len(opened_valves)):
+        indent += '    '
+    print(indent+f"find_path_recursive({source_valve}, {opened_valves})")
+    #opened_valves = deepcopy(opened_valves)
+
+    potential_pressures = determine_potential_pressures(valves, source_valve, 30-time, opened_valves)
+    ranked_candidates = sorted(potential_pressures.keys(), reverse=True)
+    print(indent+f"{potential_pressures}")
+    candidate_count = 0
+    potential_pressures_of_next = dict()
+    while candidate_count < number_of_candidates:
+        potential_next_valve = potential_pressures[ranked_candidates[candidate_count]]
+        print(indent+f"potential next valve: {potential_next_valve}")
+        if potential_next_valve not in opened_valves and potential_next_valve is not source_valve:
+            potential_pressures_of_next[find_path_recursive(valves, potential_next_valve, number_of_candidates, time, opened_valves)] = potential_next_valve
+        candidate_count += 1
+    print(indent+f"{potential_pressures_of_next}")
+    pprint(ranked_candidates)
+    return potential_pressures
+
+
+def find_path(valves: nx.Graph, current_valve, number_of_candidates, time, opened_valves):
+    for valve in valves:
+        determine_potential_pressures(valves, current_valve, 2, time, opened_valves)
 
 
 def compute(valves, starting_node, is_collapsed: bool):
@@ -98,7 +141,7 @@ def compute(valves, starting_node, is_collapsed: bool):
     # pprint(number_of_permutations)
 
     # https://stackoverflow.com/questions/6503388/prevent-memory-error-in-itertools-permutation
-    permutations_iterator = it.permutations(useful_valve_names)
+    permutations = it.permutations(useful_valve_names)
     # print(len(permutations))
     # pprint(permutations)
 
@@ -108,8 +151,8 @@ def compute(valves, starting_node, is_collapsed: bool):
 
     possible_solutions = []
     count = 0
-    for permutation in alive_it(permutations_iterator, total=number_of_permutations):
-        pprint(permutation)
+    for permutation in alive_it(permutations, total=number_of_permutations):
+        #pprint(permutation)
         #print(f"{count/number_of_permutations*100:.0f} %")
         count += 1
         # pprint(permutation)
@@ -122,6 +165,9 @@ def compute(valves, starting_node, is_collapsed: bool):
             else:
                 source = permutation[idx]
                 target = permutation[idx+1]
+
+            # pprint(determine_potential_pressures(valves, source, max_time-time))
+
             if is_collapsed:
                 # collapsed graph has weighted edges, so we need dijkstra
                 cheapest_path = nx.dijkstra_path(valves, source=source, target=target)
@@ -202,6 +248,8 @@ plt.margins(0.0)
 fig.tight_layout()
 plt.show(block=False)
 
+#find_path_recursive(graph_collapsed, first_valve, 2, 0, dict())
+#find_path(valves, first_valve, 2, 0, [])
 possible_solutions = compute(graph_to_analyze, first_valve, is_collapsed)
 
 max_possible_pressure = 0
