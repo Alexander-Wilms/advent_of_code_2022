@@ -24,6 +24,7 @@ def create_dir(path):
     print("creating dir "+path)
     # https://stackoverflow.com/a/9320375/2278742
     path_elements = path.split('/')
+    # get dict addressed by path in global variable 'filesystem', which contains nested dicts
     key = path_elements[1:]
     my_dict = reduce(dict.get, key[:-1], filesystem)
     my_dict[key[-1]] = dict()
@@ -35,6 +36,7 @@ def insert_file(path: str, name: str, size: int):
     path_with_file = path_with_file.replace('//', '/')
     path_elements = path_with_file.split('/')
     key = path_elements[1:]
+    # get dict addressed by path in global variable 'filesystem', which contains nested dicts
     my_dict = reduce(dict.get, key[:-1], filesystem)
     my_dict[key[-1]] = size
 
