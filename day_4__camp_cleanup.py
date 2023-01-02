@@ -1,4 +1,3 @@
-from pprint import pprint
 
 fully_contained_pairs = 0
 overlapping_ranges = 0

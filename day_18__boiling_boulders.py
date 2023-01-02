@@ -23,4 +23,6 @@ for cube in cube_list:
     total_surface_area += 6-neighbors
     # pprint(neighbors)
 
+
+
 pprint(total_surface_area)

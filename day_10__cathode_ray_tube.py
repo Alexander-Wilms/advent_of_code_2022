@@ -89,7 +89,6 @@ class CRT():
         self.height: int = 6
         self.current_pixel: int = 0
         self.screen: numpy.ndarray = numpy.full((self.width, self.height), False)
-        pass
 
     def draw_pixel(self, X_sprite: int):
         x = self.current_pixel % self.width

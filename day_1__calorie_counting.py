@@ -1,4 +1,3 @@
-from pprint import pprint
 
 calories_of_current_elf = 0
 calories_of_each_elf = []
