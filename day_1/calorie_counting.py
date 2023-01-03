@@ -1,9 +1,10 @@
+import os
 
 calories_of_current_elf = 0
 calories_of_each_elf = []
 no_newline_before_eof = 0
-with open('day_1_input.txt') as f:
-    for line in f:
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
+    for line in file:
         # print(line.strip())
         if line == '\n':
             calories_of_each_elf.append(calories_of_current_elf)

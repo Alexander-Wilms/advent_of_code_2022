@@ -1,7 +1,8 @@
+import os
 
 fully_contained_pairs = 0
 overlapping_ranges = 0
-with open('day_4_input.txt') as f:
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as f:
     for line in f:
         assignments_raw = line.strip()
         assignments = assignments_raw.split(',')

@@ -1,3 +1,4 @@
+import os
 from pprint import pprint
 
 
@@ -18,7 +19,7 @@ pprint(get_first_idx_after_n_distinct_chars('nppdvjthqldpwncqszvftbrmjlhg', 4))
 pprint(get_first_idx_after_n_distinct_chars('nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg', 4))
 pprint(get_first_idx_after_n_distinct_chars('zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw', 4))
 
-with open('day_6_input.txt') as file:
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
     data = file.read()
 
 solution_part_1 = get_first_idx_after_n_distinct_chars(data, 4)
@@ -30,4 +31,6 @@ pprint(get_first_idx_after_n_distinct_chars('bvwbjplbgvbhsrlpgdmjqwftvncz', 14))
 pprint(get_first_idx_after_n_distinct_chars('nppdvjthqldpwncqszvftbrmjlhg', 14))
 pprint(get_first_idx_after_n_distinct_chars('nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg', 14))
 pprint(get_first_idx_after_n_distinct_chars('zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw', 14))
-pprint(get_first_idx_after_n_distinct_chars(data, 14))
+
+print(f"solution to part 1: {solution_part_1}")
+print(f"solution to part 2: {get_first_idx_after_n_distinct_chars(data, 14)}")

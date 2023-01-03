@@ -2,7 +2,7 @@
 E.g. the solution to part 2 can be computed in 6 seconds"""
 from copy import deepcopy
 from datetime import datetime
-
+import os
 import numpy as np
 
 
@@ -226,7 +226,7 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
 
 
 start = datetime.now()
-file_name = 'day_14_input.txt'
+file_name = 'input.txt'
 puzzle_part = 2
 sim_not_finished = True
 spawn_point_reached = False
@@ -234,7 +234,7 @@ show_sim_toggle = False
 
 rocks = []
 
-with open(file_name) as file:
+with open(os.path.join(os.path.dirname(__file__), file_name)) as file:
     for line in file:
         stripped_line = line.strip()
         points = stripped_line.split('->')

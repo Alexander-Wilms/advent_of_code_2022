@@ -1,6 +1,6 @@
 from functools import reduce
 from pprint import pprint
-
+import os
 
 def get_sizes(filesystem: dict, name, dir_sizes: list[int]) -> tuple[int, list[int]]:
     size = 0
@@ -44,9 +44,9 @@ def insert_file(path: str, name: str, size: int):
 filesystem = {}
 current_path = ''
 
-input_file = 'day_7_input.txt'
+input_file = 'input.txt'
 
-with open(input_file) as file:
+with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
     for line in file:
         line = line.strip()
         print(line)

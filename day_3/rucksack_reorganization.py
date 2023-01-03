@@ -1,5 +1,5 @@
 from pprint import pprint
-
+import os
 
 def map_item_to_priority(item: str):
     ascii_value = ord(item)
@@ -11,8 +11,8 @@ def map_item_to_priority(item: str):
         raise ValueError("Can't map item '"+item+"' to a prority")
 
 
-sum_of_priorities = 0
-with open('day_3_input.txt') as f:
+sum_of_priorities_part_1 = 0
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as f:
     for line in f:
         rucksack = line.strip()
         print(rucksack)
@@ -30,18 +30,16 @@ with open('day_3_input.txt') as f:
                     duplicate_item = first_item
                     break
         print(duplicate_item)
-        sum_of_priorities += map_item_to_priority(duplicate_item)
-
-print('answer for part 1: '+str(sum_of_priorities))
+        sum_of_priorities_part_1 += map_item_to_priority(duplicate_item)
 
 lines = []
-with open('day_3_input.txt') as f:
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as f:
     for line in f:
         lines.append(line.strip())
 
 pprint(lines)
 
-sum_of_priorities = 0
+sum_of_priorities_part_2 = 0
 done_with_group = False
 for line_idx in range(0, len(lines), 3):
     print(line_idx)
@@ -62,10 +60,11 @@ for line_idx in range(0, len(lines), 3):
                 if char_first_line == char_second_line == char_third_line:
                     if not done_with_group:
                         print(char_first_line)
-                        sum_of_priorities += map_item_to_priority(char_first_line)
+                        sum_of_priorities_part_2 += map_item_to_priority(char_first_line)
                         done_with_group = True
                         break
 
     print('---')
 
-print('answer for part 2: '+str(sum_of_priorities))
+print('answer for part 1: '+str(sum_of_priorities_part_1))
+print('answer for part 2: '+str(sum_of_priorities_part_2))

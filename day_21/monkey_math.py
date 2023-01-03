@@ -1,3 +1,4 @@
+import os
 import re
 from copy import deepcopy
 from pprint import pprint
@@ -81,7 +82,7 @@ G = nx.DiGraph()
 known_values = dict()
 unknown_values = dict()
 
-with open('day_21_input.txt') as file:
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
     for line in file:
         line_stripped = line.strip()
         # print(line_stripped)

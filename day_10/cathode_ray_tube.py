@@ -1,3 +1,5 @@
+import os
+
 import numpy
 
 
@@ -17,7 +19,7 @@ class CPU():
     def set_program(self, program: str) -> int:
         instructions = []
         cycles_neccessary = 0
-        with open(program) as file:
+        with open(os.path.join(os.path.dirname(__file__), program)) as file:
             for line in file:
                 instruction = line.strip()
                 cycles_neccessary += self.get_cycles_per_instruction(instruction)
@@ -113,17 +115,17 @@ class CRT():
 cpu = CPU()
 
 
-for _ in range(cpu.set_program('day_10_input_example_1.txt')):
+for _ in range(cpu.set_program('example_1.txt')):
     cpu.execute_cycle()
 
 print(cpu.get_sum_of_signal_strengths())
 
-for _ in range(cpu.set_program('day_10_input_example_2.txt')):
+for _ in range(cpu.set_program('example_2.txt')):
     cpu.execute_cycle()
 
 print(cpu.get_sum_of_signal_strengths())
 
-for _ in range(cpu.set_program('day_10_input.txt')):
+for _ in range(cpu.set_program('input.txt')):
     cpu.execute_cycle()
 
 print('solution to part 1: '+str(cpu.get_sum_of_signal_strengths()))

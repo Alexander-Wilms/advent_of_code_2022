@@ -1,6 +1,7 @@
+import os
 import re
-from pprint import pprint
 from copy import deepcopy
+from pprint import pprint
 
 
 def print_crates(crates_to_print):
@@ -23,7 +24,7 @@ def print_top_crates(part, crates_to_print):
 
 crates = []
 moves = []
-with open('day_5_input.txt') as f:
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as f:
     for l in f:
         line = l.replace('\n', '')
         print('line: '+line)
@@ -70,15 +71,18 @@ for move in moves:
     number_of_crates_on_from_stack = len(crates[from_stack])
     number_of_crates_on_to_stack = len(crates[to_stack])
 
-    move_str = 'move '+str(number_of_crates)+' from '+str(from_stack+1)+' to '+str(to_stack+1)
+    move_str = 'move '+str(number_of_crates)+' from ' + \
+        str(from_stack+1)+' to '+str(to_stack+1)
     print(move_str)
 
     for idx in range(number_of_crates):
         crate = crates[from_stack].pop(0)
         crates[to_stack].insert(0, crate)
 
-    assert number_of_crates_on_from_stack - number_of_crates == len(crates[from_stack])
-    assert number_of_crates_on_to_stack + number_of_crates == len(crates[to_stack])
+    assert number_of_crates_on_from_stack - \
+        number_of_crates == len(crates[from_stack])
+    assert number_of_crates_on_to_stack + \
+        number_of_crates == len(crates[to_stack])
 
 print('crates for part 1 before moving:')
 print_crates(crates)
@@ -90,7 +94,8 @@ for move in moves:
 
     print_crates(crates_part_2)
 
-    move_str = 'move '+str(number_of_crates)+' from '+str(from_stack+1)+' to '+str(to_stack+1)
+    move_str = 'move '+str(number_of_crates)+' from ' + \
+        str(from_stack+1)+' to '+str(to_stack+1)
     print(move_str)
 
     crates_on_crane = []

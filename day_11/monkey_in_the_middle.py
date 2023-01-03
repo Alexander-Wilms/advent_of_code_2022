@@ -1,8 +1,12 @@
+import os
 import re
+from copy import deepcopy
 
 
 class Monkey():
-    def __init__(self, idx: int, starting_items: list[int], operation: str, divisor: int, next_if_true: int, next_if_false: int):
+    def __init__(
+            self, idx: int, starting_items: list[int],
+            operation: str, divisor: int, next_if_true: int, next_if_false: int):
         self.idx = idx
         self.items: list[int] = starting_items
         self.operation: str = operation
@@ -15,25 +19,27 @@ class Monkey():
     def set_product_of_divisors(self, product: int):
         self.product_of_divisors = product
 
-    def round(self):
-        #print('Monkey '+str(self.idx)+':')
+    def round(self, puzzle_part: int):
+        # print('Monkey '+str(self.idx)+':')
         # use list of tuples instead of dict, since different items can have the same worry level
         items_to_be_thrown: list[tuple(int, int)] = []
         for item in self.items:
             self.items_inspected_count += 1
-            #print('\tMonkey inspects an item with a worry level of '+str(item)+'.')
+            # print('\tMonkey inspects an item with a worry level of '+str(item)+'.')
             new_worry_level = eval(self.operation.replace('old', str(item)))
-            #print('\t\tWorry level changes to '+str(new_worry_level)+'.')
+            # print('\t\tWorry level changes to '+str(new_worry_level)+'.')
+            if puzzle_part == 1:
+                new_worry_level = int(new_worry_level / 3)
             new_worry_level = new_worry_level % self.product_of_divisors
-            #print('\t\tMonkey gets bored with item. Worry level is divided by 3 to '+str(new_worry_level)+'.')
+            # print('\t\tMonkey gets bored with item. Worry level is divided by 3 to '+str(new_worry_level)+'.')
             if new_worry_level % self.divisor == 0:
-                #print('\t\tCurrent worry level is divisible by '+str(self.divisor)+'.')
+                # print('\t\tCurrent worry level is divisible by '+str(self.divisor)+'.')
                 next_monkey = self.next_if_true
             else:
-                #print('\t\tCurrent worry level is not divisible by '+str(self.divisor)+'.')
+                # print('\t\tCurrent worry level is not divisible by '+str(self.divisor)+'.')
                 next_monkey = self.next_if_false
             items_to_be_thrown.append((new_worry_level, next_monkey))
-            #print(f"\t\tItem with worry level {new_worry_level} is thrown to monkey {next_monkey}.")
+            # print(f"\t\tItem with worry level {new_worry_level} is thrown to monkey {next_monkey}.")
         self.items = []
         return items_to_be_thrown
 
@@ -61,14 +67,13 @@ class Monkey():
 def print_worry(monkeys: list[Monkey]):
     pass
     # for monkey in monkeys:
-    #print('Monkey '+str(monkey.idx)+': ', end='')
+    # print('Monkey '+str(monkey.idx)+': ', end='')
     # pprint(monkey.get_items())
 
 
 def print_inspections(monkeys: list[Monkey]):
-    pass
-    # for monkey in monkeys:
-    #print('Monkey '+str(monkey.idx)+' inspected items '+str(monkey.get_inspected_items_count())+' times')
+    for monkey in monkeys:
+        print('Monkey '+str(monkey.idx)+' inspected items '+str(monkey.get_inspected_items_count())+' times')
 
 
 def get_monkey_business_level(monkeys: list[Monkey]) -> int:
@@ -82,8 +87,31 @@ def get_monkey_business_level(monkeys: list[Monkey]) -> int:
     return monkey_business_level
 
 
+def play_monkey_in_the_middle(original_monkeys: list[Monkey], rounds: int, puzzle_part: int) -> int:
+    monkeys = deepcopy(original_monkeys)
+    # pprint(monkeys)
+
+    for game_round in range(1, rounds+1):
+        # print('Round '+str(game_round)+':')
+        for monkey in monkeys:
+            items_to_be_thrown = monkey.round(puzzle_part)
+            # pprint(items_to_be_thrown)
+            for item in items_to_be_thrown:
+                # pprint(item)
+                monkeys[item[1]].receive_item(item[0])
+        # print()
+        # print(f"After round {game_round}, the monkeys are holding items with these worry levels:")
+        print_worry(monkeys)
+        # print()
+
+    print_inspections(monkeys)
+
+    # print()
+    return get_monkey_business_level(monkeys)
+
+
 product_of_divisors = 1
-with open('day_11_input.txt') as file:
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
     monkeys: list[Monkey] = []
     for line in file:
         line = line.strip()
@@ -111,23 +139,8 @@ for monkey in monkeys:
     monkey.set_product_of_divisors(product_of_divisors)
 
 
-# pprint(monkeys)
+solution_part_1 = play_monkey_in_the_middle(monkeys, 20, 1)
+solution_part_2 = play_monkey_in_the_middle(monkeys, 10000, 2)
 
-for game_round in range(1, 10000+1):
-    #print('Round '+str(game_round)+':')
-    for monkey in monkeys:
-        items_to_be_thrown = monkey.round()
-        # pprint(items_to_be_thrown)
-        for item in items_to_be_thrown:
-            # pprint(item)
-            monkeys[item[1]].receive_item(item[0])
-    # print()
-    #print(f"After round {game_round}, the monkeys are holding items with these worry levels:")
-    print_worry(monkeys)
-    # print()
-
-print_inspections(monkeys)
-
-# print()
-
-print('solution to part 1: '+str(get_monkey_business_level(monkeys)))
+print('solution to part 1: '+str(solution_part_1))
+print('solution to part 2: '+str(solution_part_2))

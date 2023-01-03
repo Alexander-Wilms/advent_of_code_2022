@@ -1,7 +1,8 @@
 from pprint import pprint
+import os
 
 cube_list = []
-with open('day_18_input.txt') as file:
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
     for line in file:
         string_list = line.strip().split(',')
         int_list = []

@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 from pprint import pprint
 
@@ -81,7 +82,7 @@ class Rope():
         grid_width = []
         grid_height = []
         moves = []
-        with open(input_file) as file:
+        with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
             for line in file:
                 moves.append(line.strip())
                 elements = line.split()
@@ -180,7 +181,7 @@ class Rope():
             print()
 
 
-rope: Rope = Rope('day_9_input.txt')
+rope: Rope = Rope('input.txt')
 
 for _ in range(rope.get_number_of_moves()):
     rope.move()

@@ -87,11 +87,11 @@ def get_scenic_score(map: numpy.ndarray, row: int, col: int) -> int:
 # https://stackoverflow.com/a/64222858/2278742
 os.system("")
 
-input_file = 'day_8_input.txt'
+input_file = 'input.txt'
 
 height = 0
 line_length_counted = False
-with open(input_file) as file:
+with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
     for line in file:
         if not line_length_counted:
             # don't count the newline
@@ -106,7 +106,7 @@ with open(input_file) as file:
 
     pprint(trees)
 
-with open(input_file) as file:
+with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
     line_count = 0
     for line in file:
         char_count = 0
