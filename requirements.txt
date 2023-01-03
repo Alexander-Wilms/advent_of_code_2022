@@ -3,5 +3,6 @@ colorama
 matplotlib
 networkx
 numpy
+pygraphviz
 python_constraint
 sympy
