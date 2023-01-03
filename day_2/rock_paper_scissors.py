@@ -1,3 +1,4 @@
+import os
 from enum import Enum
 from pprint import pprint
 
@@ -32,13 +33,17 @@ def get_score_of_round(opponent: RPS, myself: RPS):
     return myself.value + get_outcome_of_round(opponent, myself).value
 
 
-def get_RPS_from_strategy_guide(line):
+def get_RPS_from_strategy_guide(line, puzzle_part) -> list[RPS]:
     rps = line.split()
     rps_enum = []
     opponent = map_strategy_guide_opponent_to_enum(rps[0])
     rps_enum.append(opponent)
-    myself = map_strategy_guide_myself_to_Outcome_enum(rps[1])
-    rps_enum.append(map_strategy_guide_myself_to_RPS_enum(opponent, myself))
+    if puzzle_part == 1:
+        myself = map_strategy_guide_myself_to_enum(rps[1])
+        rps_enum.append(myself)
+    elif puzzle_part == 2:
+        myself = map_strategy_guide_myself_to_Outcome_enum(rps[1])
+        rps_enum.append(map_strategy_guide_myself_to_RPS_enum(opponent, myself))
     return rps_enum
 
 
@@ -49,6 +54,16 @@ def map_strategy_guide_opponent_to_enum(character) -> RPS:
         case 'B':
             return RPS.paper
         case 'C':
+            return RPS.scissors
+
+
+def map_strategy_guide_myself_to_enum(character) -> RPS:
+    match character:
+        case 'X':
+            return RPS.rock
+        case 'Y':
+            return RPS.paper
+        case 'Z':
             return RPS.scissors
 
 
@@ -94,15 +109,21 @@ def get_myself_won(opponent: RPS) -> RPS:
             return RPS.rock
 
 
-total_score = 0
-with open('day_2_input.txt', 'r') as f:
-    for line in f:
+total_score_part_1 = 0
+total_score_part_2 = 0
+with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
+    for line in file:
         print(line.strip())
-        [opponent, myself] = get_RPS_from_strategy_guide(line.strip())
+        [opponent, myself_1] = get_RPS_from_strategy_guide(line.strip(), 1)
+        [_, myself_2] = get_RPS_from_strategy_guide(line.strip(), 2)
         pprint(opponent)
-        pprint(myself)
-        score_of_round = get_score_of_round(opponent, myself)
-        print(score_of_round)
-        total_score += score_of_round
+        # pprint(myself)
+        score_of_round_1 = get_score_of_round(opponent, myself_1)
+        score_of_round_2 = get_score_of_round(opponent, myself_2)
+        print(score_of_round_1)
+        print(score_of_round_2)
+        total_score_part_1 += score_of_round_1
+        total_score_part_2 += score_of_round_2
 
-print(total_score)
+print(f"solution to part 1: {total_score_part_1}")
+print(f"solution to part 2: {total_score_part_2}")
