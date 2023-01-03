@@ -7,7 +7,7 @@ from types import NoneType
 import matplotlib.pyplot as plt
 import networkx as nx
 from alive_progress import alive_bar
-from networkx.drawing.nx_pydot import graphviz_layout
+from networkx.drawing.nx_agraph import graphviz_layout
 from sympy import Symbol
 from sympy.solvers import solve
 
@@ -22,7 +22,8 @@ def draw_tree(G, axs, fig_idx):
         node_labels[node_name] = str(node_name)+': '+str(node_weights[node_name])
     # https://stackoverflow.com/a/57512902/2278742
     pos = graphviz_layout(G, prog='dot')
-    nx.draw(G, pos=pos, with_labels=True, node_color='w', edge_color='b', labels=node_labels, node_shape='s', bbox=dict(facecolor="white", edgecolor='black', boxstyle='round,pad=0.2'), ax=axs[fig_idx])
+    nx.draw(G, pos=pos, with_labels=True, node_color='w', edge_color='b', labels=node_labels, node_shape='s',
+            bbox=dict(facecolor="white", edgecolor='black', boxstyle='round,pad=0.2'), ax=axs[fig_idx])
     axs[fig_idx].collections[0].set_edgecolor("#000000")
 
 
@@ -30,7 +31,8 @@ def simplify_tree(G: nx.DiGraph, id_of_number_to_yell='') -> nx.DiGraph:
     G_working_copy = deepcopy(G)
     G_simplified = nx.DiGraph()
 
-    G_working_copy.nodes['root']['value'] = G_working_copy.nodes['root']['value'].replace('+', '$').replace('*', '$').replace('/', '$')
+    G_working_copy.nodes['root']['value'] = G_working_copy.nodes['root']['value'].replace(
+        '+', '$').replace('*', '$').replace('/', '$')
     G_working_copy.nodes[id_of_number_to_yell]['value'] = 'x'
 
     done = False
@@ -64,7 +66,7 @@ def simplify_tree(G: nx.DiGraph, id_of_number_to_yell='') -> nx.DiGraph:
     return G_simplified
 
 
-def get_solution(G: nx.DiGraph) -> tuple[nx.DiGraph, nx.DiGraph]:
+def get_solution(G: nx.DiGraph) -> tuple[nx.DiGraph, int, int]:
     variable_part_2 = 'humn'
     G_simplified = simplify_tree(G, variable_part_2)
     equation = G_simplified.nodes['root']['value']
@@ -74,45 +76,50 @@ def get_solution(G: nx.DiGraph) -> tuple[nx.DiGraph, nx.DiGraph]:
     pprint(G_simplified.nodes)
     print('solution to part 1: '+str(solution_part_1))
     print('solution to part 2: '+str(solution_part_2))
-    return G_simplified
+    return G_simplified, solution_part_1, solution_part_2
 
 
-G = nx.DiGraph()
+def get_solutions(input_file) -> tuple[int]:
+    G = nx.DiGraph()
 
-known_values = dict()
-unknown_values = dict()
+    known_values = dict()
+    unknown_values = dict()
 
-with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
-    for line in file:
-        line_stripped = line.strip()
-        # print(line_stripped)
-        elements = line_stripped.split(':')
-        # pprint(elements)
-        monkey = elements[0]
-        # print(monkey)
-        G.add_node(monkey, value=elements[1])
-        right_side = re.search(r'\d+', elements[1])
-        if isinstance(right_side, NoneType):
-            calculation = elements[1].replace(' ', '')
-            unknown_values[monkey] = calculation
-            connected_nodes = re.split(r'\+|-|\*|/', calculation)
-            G.add_edge(connected_nodes[0], monkey)
-            G.add_edge(connected_nodes[1], monkey)
-        else:
-            value = int(right_side.group(0))
-            known_values[monkey] = value
-            # print(str(value))
+    with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
+        for line in file:
+            line_stripped = line.strip()
+            # print(line_stripped)
+            elements = line_stripped.split(':')
+            # pprint(elements)
+            monkey = elements[0]
+            # print(monkey)
+            G.add_node(monkey, value=elements[1])
+            right_side = re.search(r'\d+', elements[1])
+            if isinstance(right_side, NoneType):
+                calculation = elements[1].replace(' ', '')
+                unknown_values[monkey] = calculation
+                connected_nodes = re.split(r'\+|-|\*|/', calculation)
+                G.add_edge(connected_nodes[0], monkey)
+                G.add_edge(connected_nodes[1], monkey)
+            else:
+                value = int(right_side.group(0))
+                known_values[monkey] = value
+                # print(str(value))
+
+    pprint(known_values)
+    pprint(unknown_values)
+
+    G_simplified, solution_part_1, solution_part_2 = get_solution(G)
+
+    fig, axs = plt.subplots(ncols=2)
+    plt.margins(0.0)
+    draw_tree(G, axs, 0)
+    draw_tree(G_simplified, axs, 1)
+    fig.tight_layout()
+
+    plt.show(block=False)
+
+    return solution_part_1, solution_part_2
 
 
-pprint(known_values)
-pprint(unknown_values)
-
-G_simplified = get_solution(G)
-
-fig, axs = plt.subplots(ncols=2)
-plt.margins(0.0)
-draw_tree(G, axs, 0)
-draw_tree(G_simplified, axs, 1)
-fig.tight_layout()
-
-plt.show()
+get_solutions('input.txt')

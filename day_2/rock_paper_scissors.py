@@ -108,22 +108,26 @@ def get_myself_won(opponent: RPS) -> RPS:
         case RPS.scissors:
             return RPS.rock
 
+def get_solutions(input_file) -> tuple[int]:
+    total_score_part_1 = 0
+    total_score_part_2 = 0
+    with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
+        for line in file:
+            print(line.strip())
+            [opponent, myself_1] = get_RPS_from_strategy_guide(line.strip(), 1)
+            [_, myself_2] = get_RPS_from_strategy_guide(line.strip(), 2)
+            pprint(opponent)
+            # pprint(myself)
+            score_of_round_1 = get_score_of_round(opponent, myself_1)
+            score_of_round_2 = get_score_of_round(opponent, myself_2)
+            print(score_of_round_1)
+            print(score_of_round_2)
+            total_score_part_1 += score_of_round_1
+            total_score_part_2 += score_of_round_2
 
-total_score_part_1 = 0
-total_score_part_2 = 0
-with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
-    for line in file:
-        print(line.strip())
-        [opponent, myself_1] = get_RPS_from_strategy_guide(line.strip(), 1)
-        [_, myself_2] = get_RPS_from_strategy_guide(line.strip(), 2)
-        pprint(opponent)
-        # pprint(myself)
-        score_of_round_1 = get_score_of_round(opponent, myself_1)
-        score_of_round_2 = get_score_of_round(opponent, myself_2)
-        print(score_of_round_1)
-        print(score_of_round_2)
-        total_score_part_1 += score_of_round_1
-        total_score_part_2 += score_of_round_2
+    print(f"solution to part 1: {total_score_part_1}")
+    print(f"solution to part 2: {total_score_part_2}")
 
-print(f"solution to part 1: {total_score_part_1}")
-print(f"solution to part 2: {total_score_part_2}")
+    return total_score_part_1, total_score_part_2
+
+get_solutions('input.txt')

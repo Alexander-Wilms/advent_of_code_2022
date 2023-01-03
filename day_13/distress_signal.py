@@ -54,64 +54,68 @@ def compare(value_1, value_2) -> int:
     indentation_level -= 1
     return retval
 
+def get_solutions(input_file):
+    packet_idx = 0
+    pair_count = 1
+    correctly_ordered = []
+    packets = []
+    with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
+        for line in file:
+            possible_packet = line.strip()
+            if possible_packet:
 
-packet_idx = 0
-pair_count = 1
-correctly_ordered = []
-packets = []
-with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
-    for line in file:
-        possible_packet = line.strip()
-        if possible_packet:
+                packet_idx += 1
 
-            packet_idx += 1
+                if packet_idx % 2 == 1:
+                    a = eval(line.strip())
 
-            if packet_idx % 2 == 1:
-                exec('a='+line.strip())
+                if packet_idx % 2 == 0:
+                    b = eval(line.strip())
 
-            if packet_idx % 2 == 0:
-                exec('b='+line.strip())
+                    # print('== Pair '+str(pair_count)+' ==')
+                    indentation_level = -1
+                    correctly_ordered.append(compare(a, b))
+                    packets.append(a)
+                    packets.append(b)
+                    # print('')
 
-                # print('== Pair '+str(pair_count)+' ==')
-                indentation_level = -1
-                correctly_ordered.append(compare(a, b))
-                packets.append(a)
-                packets.append(b)
-                # print('')
+            else:
+                pair_count += 1
 
-        else:
-            pair_count += 1
+    # print(correctly_ordered)
 
-# print(correctly_ordered)
+    sum_of_indices = 0
+    for idx in range(1, len(correctly_ordered)+1):
+        if correctly_ordered[idx-1] == -1:
+            sum_of_indices += idx
 
-sum_of_indices = 0
-for idx in range(1, len(correctly_ordered)+1):
-    if correctly_ordered[idx-1] == -1:
-        sum_of_indices += idx
+    print('solution to part 1: '+str(sum_of_indices))
 
-print('solution to part 1: '+str(sum_of_indices))
+    # append divider packets
+    packets.append([[2]])
+    packets.append([[6]])
+    # print(packets)
 
-# append divider packets
-packets.append([[2]])
-packets.append([[6]])
-# print(packets)
+    packets_are_sorted = False
 
-packets_are_sorted = False
+    while not packets_are_sorted:
+        packets_are_sorted = True
+        for packet_idx in range(0, len(packets)-1):
+            # print('comparing '+str(packet_idx)+' and '+str(packet_idx+1))
+            if compare(packets[packet_idx], packets[packet_idx+1]) > 0:
+                packets[packet_idx+1], packets[packet_idx] = packets[packet_idx], packets[packet_idx+1]
+                packets_are_sorted = False
 
-while not packets_are_sorted:
-    packets_are_sorted = True
-    for packet_idx in range(0, len(packets)-1):
-        # print('comparing '+str(packet_idx)+' and '+str(packet_idx+1))
-        if compare(packets[packet_idx], packets[packet_idx+1]) > 0:
-            packets[packet_idx+1], packets[packet_idx] = packets[packet_idx], packets[packet_idx+1]
-            packets_are_sorted = False
+    # print(packets)
 
-# print(packets)
+    # determine divider packet indices
+    decoder_key = 1
+    for idx in range(len(packets)):
+        if packets[idx] == [[2]] or packets[idx] == [[6]]:
+            decoder_key *= idx+1
 
-# determine divider packet indices
-decoder_key = 1
-for idx in range(len(packets)):
-    if packets[idx] == [[2]] or packets[idx] == [[6]]:
-        decoder_key *= idx+1
+    print('solution to part 2: '+str(decoder_key))
 
-print('solution to part 2: '+str(decoder_key))
+    return sum_of_indices, decoder_key
+
+get_solutions('input.txt')

@@ -111,21 +111,25 @@ class CRT():
                 print(pixel, end=' ')
             print()
 
+def get_solutions(input_file):
+    cpu = CPU()
 
-cpu = CPU()
+    for _ in range(cpu.set_program('example_1.txt')):
+        cpu.execute_cycle()
+
+    print(cpu.get_sum_of_signal_strengths())
+
+    for _ in range(cpu.set_program('example_2.txt')):
+        cpu.execute_cycle()
+
+    print(cpu.get_sum_of_signal_strengths())
+
+    for _ in range(cpu.set_program('input.txt')):
+        cpu.execute_cycle()
+
+    print('solution to part 1: '+str(cpu.get_sum_of_signal_strengths()))
+
+    # hardcoded since it's not trivial to extract from CRT
+    return cpu.get_sum_of_signal_strengths(), 'EKRHEPUZ'
 
 
-for _ in range(cpu.set_program('example_1.txt')):
-    cpu.execute_cycle()
-
-print(cpu.get_sum_of_signal_strengths())
-
-for _ in range(cpu.set_program('example_2.txt')):
-    cpu.execute_cycle()
-
-print(cpu.get_sum_of_signal_strengths())
-
-for _ in range(cpu.set_program('input.txt')):
-    cpu.execute_cycle()
-
-print('solution to part 1: '+str(cpu.get_sum_of_signal_strengths()))

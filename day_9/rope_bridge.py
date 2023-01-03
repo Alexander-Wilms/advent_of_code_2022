@@ -181,11 +181,17 @@ class Rope():
             print()
 
 
-rope: Rope = Rope('input.txt')
+def get_solutions(input_file) -> tuple[int]:
+    rope: Rope = Rope(input_file)
 
-for _ in range(rope.get_number_of_moves()):
-    rope.move()
+    for _ in range(rope.get_number_of_moves()):
+        rope.move()
 
-rope.print_visited_grid()
+    rope.print_visited_grid()
 
-print('\nsolution to part 1: '+str(rope.get_number_of_cells_visited_by_tail()))
+    print('\nsolution to part 1: '+str(rope.get_number_of_cells_visited_by_tail()))
+
+    return rope.get_number_of_cells_visited_by_tail(), None
+
+
+get_solutions('input.txt')

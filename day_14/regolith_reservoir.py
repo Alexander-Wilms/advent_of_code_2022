@@ -80,7 +80,11 @@ def show_sim(sim: np.ndarray, first_col: int):
             pass
 
 
-def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spawn_point: list[int], puzzle_part: int) -> tuple[np.ndarray, bool, tuple[int], bool, bool]:
+def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int],
+              spawn_point: list[int],
+              puzzle_part: int, show_sim_toggle: bool, default_spawn_point: list[int]) -> tuple[np.ndarray, bool,
+                                                                                                tuple[int],
+                                                                                                bool, bool]:
     if show_sim_toggle:
         # os.system('clear')
         show_sim(sim, min_col)
@@ -225,42 +229,53 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
     return filled_rocks
 
 
-start = datetime.now()
-file_name = 'input.txt'
-puzzle_part = 2
-sim_not_finished = True
-spawn_point_reached = False
-show_sim_toggle = False
+def get_solution_to_puzzle_part(puzzle_part: int) -> int:
+    start = datetime.now()
+    file_name = 'input.txt'
 
-rocks = []
+    sim_not_finished = True
+    spawn_point_reached = False
+    show_sim_toggle = False
 
-with open(os.path.join(os.path.dirname(__file__), file_name)) as file:
-    for line in file:
-        stripped_line = line.strip()
-        points = stripped_line.split('->')
-        for idx in range(len(points)):
-            points[idx] = points[idx].strip()
-            points[idx] = points[idx].split(',')
-            points[idx] = [int(points[idx][0]), int(points[idx][1])]
-        rocks.append(points)
+    rocks = []
 
-# pprint(rocks)
-sim, min_col = create_sim(rocks, puzzle_part)
-show_sim(sim, min_col)
+    with open(os.path.join(os.path.dirname(__file__), file_name)) as file:
+        for line in file:
+            stripped_line = line.strip()
+            points = stripped_line.split('->')
+            for idx in range(len(points)):
+                points[idx] = points[idx].strip()
+                points[idx] = points[idx].split(',')
+                points[idx] = [int(points[idx][0]), int(points[idx][1])]
+            rocks.append(points)
 
-default_spawn_point = [0, col_to_idx(500, min_col)]
-spawn_point = deepcopy(default_spawn_point)
-sim[spawn_point[0], spawn_point[1]] = 'o'
-active_sand_coord = [spawn_point[0], spawn_point[1]]
+    # pprint(rocks)
+    sim, min_col = create_sim(rocks, puzzle_part)
+    show_sim(sim, min_col)
 
-while sim_not_finished:
-    sim, sim_not_finished, active_sand_coord, in_steady_state, spawn_point_reached = time_step(sim, min_col, active_sand_coord, spawn_point, puzzle_part)
-    if puzzle_part == 1 and in_steady_state:
-        break
-    if puzzle_part == 2 and spawn_point_reached:
-        break
+    default_spawn_point = [0, col_to_idx(500, min_col)]
+    spawn_point = deepcopy(default_spawn_point)
+    sim[spawn_point[0], spawn_point[1]] = 'o'
+    active_sand_coord = [spawn_point[0], spawn_point[1]]
 
-show_sim(sim, min_col)
+    while sim_not_finished:
+        sim, sim_not_finished, active_sand_coord, in_steady_state, spawn_point_reached = time_step(
+            sim, min_col, active_sand_coord, spawn_point, puzzle_part, show_sim_toggle, default_spawn_point)
+        if puzzle_part == 1 and in_steady_state:
+            break
+        if puzzle_part == 2 and spawn_point_reached:
+            break
 
-print('solution to part '+str(puzzle_part)+': '+str(count_grains(sim)))
-print("time: "+str(datetime.now()-start))
+    show_sim(sim, min_col)
+
+    print('solution to part '+str(puzzle_part)+': '+str(count_grains(sim)))
+    print("time: "+str(datetime.now()-start))
+
+    return count_grains(sim)
+
+
+def get_solutions(input_file) -> tuple[int]:
+    return get_solution_to_puzzle_part(1), get_solution_to_puzzle_part(2)
+
+
+get_solutions('input.txt')

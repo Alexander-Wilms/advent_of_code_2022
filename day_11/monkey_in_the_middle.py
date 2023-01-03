@@ -109,38 +109,42 @@ def play_monkey_in_the_middle(original_monkeys: list[Monkey], rounds: int, puzzl
     # print()
     return get_monkey_business_level(monkeys)
 
+def get_solutions(input_file) -> tuple[int]:
+    product_of_divisors = 1
+    with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
+        monkeys: list[Monkey] = []
+        for line in file:
+            line = line.strip()
+            # collect attributes of current monkey
+            if 'Monkey' in line:
+                idx = int(re.findall(r'\d+', line)[0])
+            if 'Starting items' in line:
+                starting_items = re.findall(r'\d+', line)
+            if 'Operation' in line:
+                tokens = line.split()
+                operation = ''.join(tokens[3:])
+            if 'Test' in line:
+                divisor = int(re.findall(r'\d+', line)[0])
+                product_of_divisors *= divisor
+            if 'If true' in line:
+                next_if_true = int(re.findall(r'\d+', line)[0])
+            if 'If false' in line:
+                next_if_false = int(re.findall(r'\d+', line)[0])
+                monkey = Monkey(int(idx), starting_items, operation, divisor, next_if_true, next_if_false)
+                # print(operation)
+                # pprint(monkey)
+                monkeys.append(monkey)
 
-product_of_divisors = 1
-with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as file:
-    monkeys: list[Monkey] = []
-    for line in file:
-        line = line.strip()
-        # collect attributes of current monkey
-        if 'Monkey' in line:
-            idx = int(re.findall(r'\d+', line)[0])
-        if 'Starting items' in line:
-            starting_items = re.findall(r'\d+', line)
-        if 'Operation' in line:
-            tokens = line.split()
-            operation = ''.join(tokens[3:])
-        if 'Test' in line:
-            divisor = int(re.findall(r'\d+', line)[0])
-            product_of_divisors *= divisor
-        if 'If true' in line:
-            next_if_true = int(re.findall(r'\d+', line)[0])
-        if 'If false' in line:
-            next_if_false = int(re.findall(r'\d+', line)[0])
-            monkey = Monkey(int(idx), starting_items, operation, divisor, next_if_true, next_if_false)
-            # print(operation)
-            # pprint(monkey)
-            monkeys.append(monkey)
-
-for monkey in monkeys:
-    monkey.set_product_of_divisors(product_of_divisors)
+    for monkey in monkeys:
+        monkey.set_product_of_divisors(product_of_divisors)
 
 
-solution_part_1 = play_monkey_in_the_middle(monkeys, 20, 1)
-solution_part_2 = play_monkey_in_the_middle(monkeys, 10000, 2)
+    solution_part_1 = play_monkey_in_the_middle(monkeys, 20, 1)
+    solution_part_2 = play_monkey_in_the_middle(monkeys, 10000, 2)
 
-print('solution to part 1: '+str(solution_part_1))
-print('solution to part 2: '+str(solution_part_2))
+    print('solution to part 1: '+str(solution_part_1))
+    print('solution to part 2: '+str(solution_part_2))
+
+    return solution_part_1, solution_part_2
+
+get_solutions('input.txt')

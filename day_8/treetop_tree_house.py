@@ -83,58 +83,61 @@ def get_scenic_score(map: numpy.ndarray, row: int, col: int) -> int:
     return scenic_score
 
 
-# Fixes ANSI colors for some reason
-# https://stackoverflow.com/a/64222858/2278742
-os.system("")
+def get_solutions(input_file) -> tuple[int]:
+    # Fixes ANSI colors for some reason
+    # https://stackoverflow.com/a/64222858/2278742
+    os.system("")
 
-input_file = 'input.txt'
+    height = 0
+    line_length_counted = False
+    with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
+        for line in file:
+            if not line_length_counted:
+                # don't count the newline
+                width = len(line)-1
+                line_length_counted = True
+            print(line.strip())
+            height += 1
 
-height = 0
-line_length_counted = False
-with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
-    for line in file:
-        if not line_length_counted:
-            # don't count the newline
-            width = len(line)-1
-            line_length_counted = True
-        print(line.strip())
-        height += 1
+        print(str(width)+', '+str(height))
 
-    print(str(width)+', '+str(height))
+        trees = numpy.zeros((width, height)).astype(int)
 
-    trees = numpy.zeros((width, height)).astype(int)
+        pprint(trees)
 
-    pprint(trees)
+    with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
+        line_count = 0
+        for line in file:
+            char_count = 0
+            for char in line:
+                if char != '\n':
+                    trees[line_count, char_count] = int(char)
+                    char_count += 1
+            line_count += 1
 
-with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
-    line_count = 0
-    for line in file:
-        char_count = 0
-        for char in line:
-            if char != '\n':
-                trees[line_count, char_count] = int(char)
-                char_count += 1
-        line_count += 1
+        pprint(trees)
 
-    pprint(trees)
+    tree_visibility = numpy.full((width, height), False)
 
-tree_visibility = numpy.full((width, height), False)
+    for row in range(height):
+        for col in range(width):
+            tree_visibility[row, col] = is_visible(trees, row, col)
 
-for row in range(height):
-    for col in range(width):
-        tree_visibility[row, col] = is_visible(trees, row, col)
+    print_map(trees)
 
-print_map(trees)
+    pprint(tree_visibility)
 
-pprint(tree_visibility)
+    scenic_scores = numpy.zeros((width, height)).astype(int)
 
-scenic_scores = numpy.zeros((width, height)).astype(int)
+    for row in range(height):
+        for col in range(width):
+            scenic_scores[row, col] = get_scenic_score(trees, row, col)
 
-for row in range(height):
-    for col in range(width):
-        scenic_scores[row, col] = get_scenic_score(trees, row, col)
+    pprint(scenic_scores)
 
-pprint(scenic_scores)
+    print('solution to part 1: '+str(tree_visibility.sum()))
+    print('solution to part 2: '+str(scenic_scores.max()))
 
-print('solution to part 1: '+str(tree_visibility.sum()))
-print('solution to part 2: '+str(scenic_scores.max()))
+    return tree_visibility.sum(), scenic_scores.max()
+
+get_solutions('input.txt')

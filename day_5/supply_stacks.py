@@ -15,100 +15,105 @@ def print_crates(crates_to_print):
 
 def print_top_crates(part, crates_to_print):
     print_crates(crates_to_print)
-    message = ''
+    solution = ''
     for stack in crates_to_print:
         top_crate = stack[0][1]
-        message += top_crate
-    print('solution to part '+str(part)+': '+message)
+        solution += top_crate
+    print('solution to part '+str(part)+': '+solution)
+    return solution
+
+def get_solutions(file_name) -> tuple[str]:
+    crates = []
+    moves = []
+    with open(os.path.join(os.path.dirname(__file__), file_name)) as file:
+        for l in file:
+            line = l.replace('\n', '')
+            print('line: '+line)
+
+            if '[' in line:
+                for idx in range(0, len(line), 4):
+                    crate = line[idx:idx+3]
+                    print('idx: '+str(idx))
+                    print('crate: '+crate)
+                    stack_idx = int(idx/4)
+                    if '[' in crate:
+                        while len(crates) < stack_idx+1:
+                            crates.append([])
+                        crates[stack_idx].append(crate)
+
+            if 'move' in line:
+                current_moves = re.findall(r'\d+', line)
+                pprint(current_moves)
+
+                current_moves_int = []
+                for value in current_moves:
+                    current_moves_int.append(int(value))
+
+                moves.append(current_moves_int)
+
+    pprint(crates)
+    pprint(moves)
 
 
-crates = []
-moves = []
-with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as f:
-    for l in f:
-        line = l.replace('\n', '')
-        print('line: '+line)
+    # https://stackoverflow.com/a/42449199/2278742
+    crates_part_2 = deepcopy(crates)
 
-        if '[' in line:
-            for idx in range(0, len(line), 4):
-                crate = line[idx:idx+3]
-                print('idx: '+str(idx))
-                print('crate: '+crate)
-                stack_idx = int(idx/4)
-                if '[' in crate:
-                    while len(crates) < stack_idx+1:
-                        crates.append([])
-                    crates[stack_idx].append(crate)
+    print('crates for part 1 before moving:')
+    print_crates(crates)
 
-        if 'move' in line:
-            current_moves = re.findall(r'\d+', line)
-            pprint(current_moves)
+    for move in moves:
 
-            current_moves_int = []
-            for value in current_moves:
-                current_moves_int.append(int(value))
+        number_of_crates = move[0]
+        assert number_of_crates > 0
 
-            moves.append(current_moves_int)
+        from_stack = move[1]-1
+        to_stack = move[2]-1
 
-pprint(crates)
-pprint(moves)
+        number_of_crates_on_from_stack = len(crates[from_stack])
+        number_of_crates_on_to_stack = len(crates[to_stack])
 
+        move_str = 'move '+str(number_of_crates)+' from ' + \
+            str(from_stack+1)+' to '+str(to_stack+1)
+        print(move_str)
 
-# https://stackoverflow.com/a/42449199/2278742
-crates_part_2 = deepcopy(crates)
+        for idx in range(number_of_crates):
+            crate = crates[from_stack].pop(0)
+            crates[to_stack].insert(0, crate)
 
-print('crates for part 1 before moving:')
-print_crates(crates)
+        assert number_of_crates_on_from_stack - \
+            number_of_crates == len(crates[from_stack])
+        assert number_of_crates_on_to_stack + \
+            number_of_crates == len(crates[to_stack])
 
-for move in moves:
+    print('crates for part 1 before moving:')
+    print_crates(crates)
 
-    number_of_crates = move[0]
-    assert number_of_crates > 0
+    for move in moves:
+        number_of_crates = move[0]
+        from_stack = move[1]-1
+        to_stack = move[2]-1
 
-    from_stack = move[1]-1
-    to_stack = move[2]-1
+        print_crates(crates_part_2)
 
-    number_of_crates_on_from_stack = len(crates[from_stack])
-    number_of_crates_on_to_stack = len(crates[to_stack])
+        move_str = 'move '+str(number_of_crates)+' from ' + \
+            str(from_stack+1)+' to '+str(to_stack+1)
+        print(move_str)
 
-    move_str = 'move '+str(number_of_crates)+' from ' + \
-        str(from_stack+1)+' to '+str(to_stack+1)
-    print(move_str)
+        crates_on_crane = []
+        for idx in range(number_of_crates):
+            crates_on_crane.append(crates_part_2[from_stack].pop(0))
 
-    for idx in range(number_of_crates):
-        crate = crates[from_stack].pop(0)
-        crates[to_stack].insert(0, crate)
+        print('crates on crane:')
+        pprint(crates_on_crane)
 
-    assert number_of_crates_on_from_stack - \
-        number_of_crates == len(crates[from_stack])
-    assert number_of_crates_on_to_stack + \
-        number_of_crates == len(crates[to_stack])
+        crates_on_crane.reverse()
 
-print('crates for part 1 before moving:')
-print_crates(crates)
+        for crate in crates_on_crane:
+            crates_part_2[to_stack].insert(0, crate)
 
-for move in moves:
-    number_of_crates = move[0]
-    from_stack = move[1]-1
-    to_stack = move[2]-1
+    solution_1 = print_top_crates(1, crates)
+    solution_2 = print_top_crates(2, crates_part_2)
 
-    print_crates(crates_part_2)
+    return solution_1, solution_2
 
-    move_str = 'move '+str(number_of_crates)+' from ' + \
-        str(from_stack+1)+' to '+str(to_stack+1)
-    print(move_str)
-
-    crates_on_crane = []
-    for idx in range(number_of_crates):
-        crates_on_crane.append(crates_part_2[from_stack].pop(0))
-
-    print('crates on crane:')
-    pprint(crates_on_crane)
-
-    crates_on_crane.reverse()
-
-    for crate in crates_on_crane:
-        crates_part_2[to_stack].insert(0, crate)
-
-print_top_crates(1, crates)
-print_top_crates(2, crates_part_2)
+get_solutions('input.txt')
