@@ -1,6 +1,7 @@
 alive_progress
 colorama
 matplotlib
+netgraph
 networkx
 numpy
 pygraphviz

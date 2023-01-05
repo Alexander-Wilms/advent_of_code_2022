@@ -10,6 +10,7 @@ from alive_progress import alive_bar
 from networkx.drawing.nx_agraph import graphviz_layout
 from sympy import Symbol
 from sympy.solvers import solve
+import netgraph as ng
 
 
 def draw_tree(G, axs, fig_idx):
@@ -112,12 +113,20 @@ def get_solutions(input_file) -> tuple[int]:
     G_simplified, solution_part_1, solution_part_2 = get_solution(G)
 
     fig, axs = plt.subplots(ncols=2)
-    plt.margins(0.0)
-    draw_tree(G, axs, 0)
-    draw_tree(G_simplified, axs, 1)
-    fig.tight_layout()
 
-    plt.show(block=False)
+    # netgraph requires patch to work with only a single node:
+    # https://github.com/paulbrodersen/netgraph/issues/33#issuecomment-1367006179
+    netgraph = False
+    if netgraph:
+        ng.Graph(G, ax=axs[0], node_labels=True, node_layout='dot', node_label_fontdict={'size': 12})
+        ng.Graph(G_simplified, ax=axs[1], node_labels=True)
+    else:
+        plt.margins(0.0)
+        draw_tree(G, axs, 0)
+        draw_tree(G_simplified, axs, 1)
+        fig.tight_layout()
+
+    plt.show(block=True)
 
     return solution_part_1, solution_part_2
 
