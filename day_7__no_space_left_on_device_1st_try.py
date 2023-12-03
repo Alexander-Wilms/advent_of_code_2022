@@ -143,7 +143,7 @@ class Filesystem:
                 raise ValueError(
                     "Directory " + dir + " does not exist in " + current_dir.get_name()
                 )
-        if action is "mkdir":
+        if action == "mkdir":
             current_dir.mkdir("test")
         return current_dir
 
