@@ -1,11 +1,10 @@
-
 calories_of_current_elf = 0
 calories_of_each_elf = []
 no_newline_before_eof = 0
-with open('day_1_input.txt') as f:
+with open("day_1_input.txt") as f:
     for line in f:
         # print(line.strip())
-        if line == '\n':
+        if line == "\n":
             calories_of_each_elf.append(calories_of_current_elf)
             calories_of_current_elf = 0
             no_newline_before_eof = 0
@@ -22,7 +21,7 @@ max_value = max(calories_of_each_elf)
 print(max_value)
 
 max_value_top_3 = 0
-for _ in range(1,3+1):
+for _ in range(1, 3 + 1):
     max_value = max(calories_of_each_elf)
     max_value_top_3 += max_value
     max_idx = calories_of_each_elf.index(max_value)

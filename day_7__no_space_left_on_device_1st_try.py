@@ -34,7 +34,7 @@ class Directory(Node):
     def ls(self):
         if len(self.children) > 0:
             for child in self.children:
-                print(child+' ')
+                print(child + " ")
 
     def get_children(self) -> dict[str, Node]:
         return self.children
@@ -55,32 +55,32 @@ class Directory(Node):
         return self.name
 
 
-class Filesystem():
+class Filesystem:
     def __init__(self):
-        self.root: Directory = Directory('root')
-        self.present_working_directory = '/'
+        self.root: Directory = Directory("root")
+        self.present_working_directory = "/"
 
     def cd(self, target: str) -> bool:
-        print('$ cd '+target)
+        print("$ cd " + target)
         absolute_path = self.get_absolute_path(target)
         if self.directory_exists(absolute_path):
             self.present_working_directory = absolute_path
             print(self.present_working_directory)
             return True
         else:
-            print('cd: '+target+': No such file or directory')
+            print("cd: " + target + ": No such file or directory")
             return False
 
     def ls(self):
-        print('$ ls')
+        print("$ ls")
         pwd = self.present_working_directory
         print(pwd)
-        path_elements = pwd.split('/')
+        path_elements = pwd.split("/")
         # pprint(path_elements)
         # pprint(path_elements)
         current_dir = self.root
         for dir in path_elements[1:]:
-            #print("checking if '"+dir+"' exists in '"+current_dir.get_name()+"'")
+            # print("checking if '"+dir+"' exists in '"+current_dir.get_name()+"'")
             children = current_dir.get_children()
             # pprint(children)
             children_names = children.keys()
@@ -94,25 +94,25 @@ class Filesystem():
         return True
 
     def pwd(self):
-        print('$ pwd')
+        print("$ pwd")
         print(self.present_working_directory)
 
     def mkdir(self, name: str):
-        print('$ mkdir '+name)
+        print("$ mkdir " + name)
         print(self.present_working_directory)
 
-        self.get_directory(self.present_working_directory, 'mkdir')
-        #pwd_dir = self.get_directory(pwd_str)
-        #pwd.mkdir(name)
+        self.get_directory(self.present_working_directory, "mkdir")
+        # pwd_dir = self.get_directory(pwd_str)
+        # pwd.mkdir(name)
         # if path_elements[0] == '' and path_elements[1] == '':
         #    self.root.mkdir(name)
 
         # pprint(path_elements)
 
     def set_directory(self, path: str, node: Node):
-        print('set_directory('+path+')')
+        print("set_directory(" + path + ")")
         absolute_path = self.get_absolute_path(path)
-        path_elements = absolute_path.split('/')
+        path_elements = absolute_path.split("/")
         pprint(path_elements)
         current_dir: Directory = self.root
         for dir in path_elements[1:]:
@@ -121,15 +121,17 @@ class Filesystem():
             if dir in children_names:
                 current_dir = children[dir]
             else:
-                raise ValueError('Directory '+dir+' does not exist in '+current_dir.get_name())
+                raise ValueError(
+                    "Directory " + dir + " does not exist in " + current_dir.get_name()
+                )
         current_dir.set_node(dir)
 
     def get_directory(self, path: str, action: str) -> Directory:
-        print('get_directory('+path+')')
-        if path == '/':
+        print("get_directory(" + path + ")")
+        if path == "/":
             return self.root
         absolute_path = self.get_absolute_path(path)
-        path_elements = absolute_path.split('/')
+        path_elements = absolute_path.split("/")
         pprint(path_elements)
         current_dir = self.root
         for dir in path_elements[1:]:
@@ -138,55 +140,57 @@ class Filesystem():
             if dir in children_names:
                 current_dir = children[dir]
             else:
-                raise ValueError('Directory '+dir+' does not exist in '+current_dir.get_name())
-        if action is 'mkdir':
-            current_dir.mkdir('test')
+                raise ValueError(
+                    "Directory " + dir + " does not exist in " + current_dir.get_name()
+                )
+        if action is "mkdir":
+            current_dir.mkdir("test")
         return current_dir
 
     def directory_exists(self, path: str) -> bool:
-        print('directory_exists('+path+')')
+        print("directory_exists(" + path + ")")
         try:
-            self.get_directory(path, 'none')
+            self.get_directory(path, "none")
             return True
         except ValueError:
             return False
 
     def get_absolute_path(self, path: str) -> str:
-        print('get_absolute_path('+path+')')
-        is_absolute_path = path[0] == '/'
+        print("get_absolute_path(" + path + ")")
+        is_absolute_path = path[0] == "/"
 
         if is_absolute_path:
             absolute_path = path
-        elif path == '..':
-            path_elements = path.split('/')
-            return '/'.join(path_elements[0:-1])
+        elif path == "..":
+            path_elements = path.split("/")
+            return "/".join(path_elements[0:-1])
         else:
-            absolute_path = self.present_working_directory+'/'+path
-        
-        return absolute_path.replace('//','/')
+            absolute_path = self.present_working_directory + "/" + path
+
+        return absolute_path.replace("//", "/")
 
     def touch(self):
         pass
 
 
-os.system('clear')
+os.system("clear")
 fs = Filesystem()
 
 fs.pwd()
 fs.ls()
-fs.mkdir('usr')
+fs.mkdir("usr")
 fs.ls()
-fs.cd('usr')
+fs.cd("usr")
 fs.ls()
 fs.pwd()
-fs.cd('/usr/share/bin')
-fs.mkdir('share')
+fs.cd("/usr/share/bin")
+fs.mkdir("share")
 fs.ls()
-fs.cd('share')
+fs.cd("share")
 fs.pwd()
-fs.mkdir('bin')
-fs.get_directory('/usr/share/bin', 'none')
-pprint(fs.directory_exists('/usr/share/bin'))
+fs.mkdir("bin")
+fs.get_directory("/usr/share/bin", "none")
+pprint(fs.directory_exists("/usr/share/bin"))
 
 
 # current_path = ''

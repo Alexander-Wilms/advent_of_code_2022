@@ -3,7 +3,7 @@ from pprint import pprint
 
 
 class RPS(Enum):
-    rock, paper, scissors = range(1, 3+1)
+    rock, paper, scissors = range(1, 3 + 1)
 
 
 class Outcome(Enum):
@@ -15,15 +15,17 @@ class Outcome(Enum):
 def get_outcome_of_round(opponent: RPS, myself: RPS) -> Outcome:
     if opponent == myself:
         return Outcome.draw
-    elif (opponent == RPS.rock and myself == RPS.scissors) or \
-            (opponent == RPS.scissors and myself == RPS.paper) or \
-            (opponent == RPS.paper and myself == RPS.rock):
+    elif (
+        (opponent == RPS.rock and myself == RPS.scissors)
+        or (opponent == RPS.scissors and myself == RPS.paper)
+        or (opponent == RPS.paper and myself == RPS.rock)
+    ):
         return Outcome.lost
     else:
         inverted_outcome = get_outcome_of_round(myself, opponent)
         pprint(inverted_outcome)
-        print(6-inverted_outcome.value)
-        return Outcome(6-inverted_outcome.value)
+        print(6 - inverted_outcome.value)
+        return Outcome(6 - inverted_outcome.value)
 
 
 def get_score_of_round(opponent: RPS, myself: RPS):
@@ -44,21 +46,21 @@ def get_RPS_from_strategy_guide(line):
 
 def map_strategy_guide_opponent_to_enum(character) -> RPS:
     match character:
-        case 'A':
+        case "A":
             return RPS.rock
-        case 'B':
+        case "B":
             return RPS.paper
-        case 'C':
+        case "C":
             return RPS.scissors
 
 
 def map_strategy_guide_myself_to_Outcome_enum(myself: str) -> Outcome:
     match myself:
-        case 'X':
+        case "X":
             return Outcome.lost
-        case 'Y':
+        case "Y":
             return Outcome.draw
-        case 'Z':
+        case "Z":
             return Outcome.won
 
 
@@ -71,7 +73,7 @@ def map_strategy_guide_myself_to_RPS_enum(opponent: RPS, myself: Outcome) -> RPS
         case Outcome.won:
             return get_myself_won(opponent)
         case _:
-            raise ValueError("Could not match "+str(opponent)+' and '+str(myself))
+            raise ValueError("Could not match " + str(opponent) + " and " + str(myself))
 
 
 def get_myself_lost(opponent: RPS) -> RPS:
@@ -95,7 +97,7 @@ def get_myself_won(opponent: RPS) -> RPS:
 
 
 total_score = 0
-with open('day_2_input.txt', 'r') as f:
+with open("day_2_input.txt", "r") as f:
     for line in f:
         print(line.strip())
         [opponent, myself] = get_RPS_from_strategy_guide(line.strip())

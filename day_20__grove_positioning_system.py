@@ -9,13 +9,13 @@ from alive_progress import alive_bar
 
 
 def sign(x):
-    return x/abs(x)
+    return x / abs(x)
 
 
 def get_nth_successor(G: nx.DiGraph, node: int, n: int) -> int:
     n = n % G.number_of_nodes()
     if n == 0:
-        #print(f"-> {node}")
+        # print(f"-> {node}")
         return node
     else:
         successors = []
@@ -33,7 +33,7 @@ def get_nth_successor(G: nx.DiGraph, node: int, n: int) -> int:
 def get_nth_predecessor(G: nx.DiGraph, node: int, n: int) -> int:
     n = n % G.number_of_nodes()
     if n == 0:
-        #print(f"-> {node}")
+        # print(f"-> {node}")
         return node
     else:
         predecessors = []
@@ -51,13 +51,13 @@ def get_nth_predecessor(G: nx.DiGraph, node: int, n: int) -> int:
 def print_sequence(G: nx.DiGraph, first: int):
     G.number_of_nodes()
     node = first
-    node_value = G.nodes[node]['value']
+    node_value = G.nodes[node]["value"]
     node_sequence = []
     for successor in G.successors(node):
         pass
     node_sequence.append(f"({node}: {node_value:>2})")
-    for _ in range(G.number_of_nodes()-1):
-        node_value = G.nodes[successor]['value']
+    for _ in range(G.number_of_nodes() - 1):
+        node_value = G.nodes[successor]["value"]
         node = get_nth_successor(G, node, 1)
         node_sequence.append(f"({node}: {node_value:>2})")
         for successor in G.successors(node):
@@ -69,7 +69,9 @@ def get_grove_coordinates(G: nx.DiGraph, idx_of_zero: int) -> int:
     G.number_of_nodes()
     summands = []
     for coordinte_factor_idx_offset in [1000, 2000, 3000]:
-        summand = G.nodes[get_nth_successor(G, idx_of_zero, coordinte_factor_idx_offset)]['value']
+        summand = G.nodes[
+            get_nth_successor(G, idx_of_zero, coordinte_factor_idx_offset)
+        ]["value"]
         summands.append(summand)
     pprint(summands)
     return sum(summands)
@@ -84,7 +86,7 @@ enable_first_visualization = False
 enable_visualization = False
 
 line_idx = 0
-with open('day_20_example.txt') as file:
+with open("day_20_example.txt") as file:
     for line in file:
         # print(line.strip())
         number = int(line.strip())
@@ -97,11 +99,11 @@ with open('day_20_example.txt') as file:
 
 node_labels = dict()
 for node, node_data in G.nodes.items():
-    node_labels[node] = str(node)+': '+str(node_data['value'])
-    G.add_edge(node, (node+1+len(sequence)) % len(sequence))
+    node_labels[node] = str(node) + ": " + str(node_data["value"])
+    G.add_edge(node, (node + 1 + len(sequence)) % len(sequence))
 
 for node, _ in G.nodes.items():
-    if not G.has_predecessor(node, (node-1+len(sequence)) % len(sequence)):
+    if not G.has_predecessor(node, (node - 1 + len(sequence)) % len(sequence)):
         print(f"node {node} has no predecessor")
         input()
 
@@ -117,24 +119,32 @@ if enable_visualization or enable_first_visualization:
     pos = nx.circular_layout(G)
     rad = 0.25
 
-    nx.draw(G, pos, labels=node_labels, node_color='w', edgecolors='black', node_size=1100, ax=axs[0])
+    nx.draw(
+        G,
+        pos,
+        labels=node_labels,
+        node_color="w",
+        edgecolors="black",
+        node_size=1100,
+        ax=axs[0],
+    )
     plt.show(block=False)
 
-print('Initial arrangement:')
+print("Initial arrangement:")
 print_sequence(G, 0)
 
 with alive_bar(len(sequence)) as bar:
     for idx in range(len(sequence)):
         if enable_visualization:
             plt.pause(1)
-        current_number = G.nodes[idx]['value']
+        current_number = G.nodes[idx]["value"]
 
         if current_number != 0:
             idx_prev = get_nth_predecessor(G, idx, 1)
             idx_next = get_nth_successor(G, idx, 1)
 
             if current_number > 0:
-                idx_next_after_mixing = get_nth_successor(G, idx, current_number+1)
+                idx_next_after_mixing = get_nth_successor(G, idx, current_number + 1)
                 for idx_prev_after_mixing in G.predecessors(idx_next_after_mixing):
                     pass
             elif current_number < 0:
@@ -157,13 +167,21 @@ with alive_bar(len(sequence)) as bar:
             pos = nx.circular_layout(G)
         if enable_visualization:
             # plt.clf()
-            #plt.title('Iteration {}'.format(idx))
-            nx.draw(G, pos, labels=node_labels, node_color='w', edgecolors='black', node_size=1100, ax=axs[idx+1])
+            # plt.title('Iteration {}'.format(idx))
+            nx.draw(
+                G,
+                pos,
+                labels=node_labels,
+                node_color="w",
+                edgecolors="black",
+                node_size=1100,
+                ax=axs[idx + 1],
+            )
             plt.show(block=False)
             # input()
             fig.tight_layout()
 
-        #print_sequence(G, idx)
+        # print_sequence(G, idx)
         bar()
 
 print_sequence(G, 0)

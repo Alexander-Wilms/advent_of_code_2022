@@ -25,26 +25,26 @@ def create_sim(rocks: list[list[int]], puzzle_part: int) -> tuple[np.ndarray, in
         # add floor for visualization
         rocks.append([[min_col, max_row], [max_col, max_row]])
 
-    number_of_columns = max_col-min_col+1
+    number_of_columns = max_col - min_col + 1
 
     # pprint(rocks)
 
     filled_rocks = fill_lines(rocks)
 
-    sim = np.ndarray((max_row+1, number_of_columns), dtype=np.object_)
+    sim = np.ndarray((max_row + 1, number_of_columns), dtype=np.object_)
 
-    sim[:] = '.'
+    sim[:] = "."
 
     for rock in filled_rocks:
         for point in rock:
             # pprint(point)
-            sim[point[1], col_to_idx(point[0], min_col)] = '#'
+            sim[point[1], col_to_idx(point[0], min_col)] = "#"
 
     return sim, min_col
 
 
 def col_to_idx(col: int, first_col: int) -> int:
-    return col-first_col
+    return col - first_col
 
 
 def show_sim(sim: np.ndarray, first_col: int):
@@ -55,14 +55,14 @@ def show_sim(sim: np.ndarray, first_col: int):
 
     col_str_list = []
     col_str_lengths = []
-    for col in range(first_col, first_col+dimensions[1]):
+    for col in range(first_col, first_col + dimensions[1]):
         col_str = str(col)
         col_str_list.append(col_str)
         col_str_lengths.append(len(col_str))
 
-    indent = ''
+    indent = ""
     for _ in range(len(str(dimensions[0]))):
-        indent += ' '
+        indent += " "
 
     for row in range(max(col_str_lengths)):
         # print(indent, end=' ')
@@ -80,7 +80,13 @@ def show_sim(sim: np.ndarray, first_col: int):
             pass
 
 
-def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spawn_point: list[int], puzzle_part: int) -> tuple[np.ndarray, bool, tuple[int], bool, bool]:
+def time_step(
+    sim: np.ndarray,
+    min_col: int,
+    active_sand_coord: tuple[int],
+    spawn_point: list[int],
+    puzzle_part: int,
+) -> tuple[np.ndarray, bool, tuple[int], bool, bool]:
     if show_sim_toggle:
         # os.system('clear')
         show_sim(sim, min_col)
@@ -99,39 +105,43 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spaw
     # print(f"{spawn_point=}")
 
     # check if active grain of sand has come to a halt
-    if active_sand_coord[0]+1 < dim[0]:
-
-        if sim[active_sand_coord[0]+1, active_sand_coord[1]] == '.':
+    if active_sand_coord[0] + 1 < dim[0]:
+        if sim[active_sand_coord[0] + 1, active_sand_coord[1]] == ".":
             # check if cell below is free
             # print('sand can fall freely')
             active_sand_found = True
             free_fall_height = 0
-            for cell in range(active_sand_coord[0]+1, dim[0]):
-                if sim[cell, active_sand_coord[1]] == '.':
+            for cell in range(active_sand_coord[0] + 1, dim[0]):
+                if sim[cell, active_sand_coord[1]] == ".":
                     free_fall_height += 1
                 else:
                     break
             vector = [free_fall_height, 0]
         # check if cell below is not free
         else:
-
             fell_to_the_left = False
-            if active_sand_coord[1]-1 >= 0:
-                if (sim[active_sand_coord[0]+1, active_sand_coord[1]-1] == '.'):
+            if active_sand_coord[1] - 1 >= 0:
+                if sim[active_sand_coord[0] + 1, active_sand_coord[1] - 1] == ".":
                     active_sand_found = True
                     fell_to_the_left = True
                     vector = [1, -1]
                     # print('sand can fall to the left')
             else:
                 active_sand_found = False
-                sim[active_sand_coord[0], active_sand_coord[1]] = '.'
+                sim[active_sand_coord[0], active_sand_coord[1]] = "."
                 in_steady_state = True
 
             fell_to_the_right = False
             if not fell_to_the_left:
-                if active_sand_coord[1]+1 <= dim[1]:
-                    if active_sand_coord[0]+1 < sim.shape[0] and active_sand_coord[1]+1 < sim.shape[1]:
-                        if sim[active_sand_coord[0]+1, active_sand_coord[1]+1] == '.':
+                if active_sand_coord[1] + 1 <= dim[1]:
+                    if (
+                        active_sand_coord[0] + 1 < sim.shape[0]
+                        and active_sand_coord[1] + 1 < sim.shape[1]
+                    ):
+                        if (
+                            sim[active_sand_coord[0] + 1, active_sand_coord[1] + 1]
+                            == "."
+                        ):
                             active_sand_found = True
                             fell_to_the_right = True
                             vector = [1, 1]
@@ -144,46 +154,76 @@ def time_step(sim: np.ndarray, min_col: int, active_sand_coord: tuple[int], spaw
                 vector = [0, 0]
     else:
         active_sand_found = True
-        sim[active_sand_coord[0], active_sand_coord[1]] = '.'
+        sim[active_sand_coord[0], active_sand_coord[1]] = "."
 
     # spawn a new grain if previous one has come to a halt
     if not active_sand_found:
         if not in_steady_state:
             # print('spawn new sand')
             # print()
-            sim[spawn_point[0], spawn_point[1]] = 'o'
+            sim[spawn_point[0], spawn_point[1]] = "o"
             active_sand_coord = [spawn_point[0], spawn_point[1]]
             active_sand_found = True
 
             if puzzle_part == 2:
                 if spawn_point == default_spawn_point:
-                    if (sim[default_spawn_point[0], default_spawn_point[1]] != '.') and \
-                        (sim[default_spawn_point[0]+1, default_spawn_point[1]-1]) != '.' and \
-                        (sim[default_spawn_point[0]+1, default_spawn_point[1]]) != '.' and \
-                            (sim[default_spawn_point[0]+1, default_spawn_point[1]+1]) != '.':
+                    if (
+                        (sim[default_spawn_point[0], default_spawn_point[1]] != ".")
+                        and (
+                            sim[default_spawn_point[0] + 1, default_spawn_point[1] - 1]
+                        )
+                        != "."
+                        and (sim[default_spawn_point[0] + 1, default_spawn_point[1]])
+                        != "."
+                        and (
+                            sim[default_spawn_point[0] + 1, default_spawn_point[1] + 1]
+                        )
+                        != "."
+                    ):
                         spawn_point_reached = True
                         # print('spawn point reached')
-                        return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point_reached
+                        return (
+                            sim,
+                            active_sand_found,
+                            active_sand_coord,
+                            in_steady_state,
+                            spawn_point_reached,
+                        )
     else:
         # simulate current grain
-        sim[active_sand_coord[0], active_sand_coord[1]] = '.'
-        new_coords = [active_sand_coord[0]+vector[0], active_sand_coord[1]+vector[1]]
+        sim[active_sand_coord[0], active_sand_coord[1]] = "."
+        new_coords = [
+            active_sand_coord[0] + vector[0],
+            active_sand_coord[1] + vector[1],
+        ]
         # print(f"grain 'x' is falling to coord [{new_coords[0]}, {new_coords[1]}]")
         if new_coords[0] >= dim[0] and puzzle_part == 1:
             # print('sand grain leaves sim')
             in_steady_state = True
-            return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point_reached
-        sim[new_coords[0], new_coords[1]] = 'o'
+            return (
+                sim,
+                active_sand_found,
+                active_sand_coord,
+                in_steady_state,
+                spawn_point_reached,
+            )
+        sim[new_coords[0], new_coords[1]] = "o"
         active_sand_coord = [new_coords[0], new_coords[1]]
 
-    return sim, active_sand_found, active_sand_coord, in_steady_state, spawn_point_reached
+    return (
+        sim,
+        active_sand_found,
+        active_sand_coord,
+        in_steady_state,
+        spawn_point_reached,
+    )
 
 
 def count_grains(sim: np.ndarray) -> int:
     grain_count = 0
     for row in range(sim.shape[0]):
         for col in range(sim.shape[1]):
-            if sim[row, col] == 'o' or sim[row, col] == 'x':
+            if sim[row, col] == "o" or sim[row, col] == "x":
                 grain_count += 1
     return grain_count
 
@@ -192,10 +232,9 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
     filled_rocks = []
     for rock in rocks:
         filled_rock = []
-        for point_idx in range(len(rock)-1):
-
+        for point_idx in range(len(rock) - 1):
             point = rock[point_idx]
-            next_point = rock[point_idx+1]
+            next_point = rock[point_idx + 1]
             if point[0] == next_point[0]:
                 vertical = True
                 constant_coordinate = point[0]
@@ -226,7 +265,7 @@ def fill_lines(rocks: list[list[int]]) -> list[list[int]]:
 
 
 start = datetime.now()
-file_name = 'day_14_input.txt'
+file_name = "day_14_input.txt"
 puzzle_part = 2
 sim_not_finished = True
 spawn_point_reached = False
@@ -237,10 +276,10 @@ rocks = []
 with open(file_name) as file:
     for line in file:
         stripped_line = line.strip()
-        points = stripped_line.split('->')
+        points = stripped_line.split("->")
         for idx in range(len(points)):
             points[idx] = points[idx].strip()
-            points[idx] = points[idx].split(',')
+            points[idx] = points[idx].split(",")
             points[idx] = [int(points[idx][0]), int(points[idx][1])]
         rocks.append(points)
 
@@ -250,11 +289,17 @@ show_sim(sim, min_col)
 
 default_spawn_point = [0, col_to_idx(500, min_col)]
 spawn_point = deepcopy(default_spawn_point)
-sim[spawn_point[0], spawn_point[1]] = 'o'
+sim[spawn_point[0], spawn_point[1]] = "o"
 active_sand_coord = [spawn_point[0], spawn_point[1]]
 
 while sim_not_finished:
-    sim, sim_not_finished, active_sand_coord, in_steady_state, spawn_point_reached = time_step(sim, min_col, active_sand_coord, spawn_point, puzzle_part)
+    (
+        sim,
+        sim_not_finished,
+        active_sand_coord,
+        in_steady_state,
+        spawn_point_reached,
+    ) = time_step(sim, min_col, active_sand_coord, spawn_point, puzzle_part)
     if puzzle_part == 1 and in_steady_state:
         break
     if puzzle_part == 2 and spawn_point_reached:
@@ -262,5 +307,5 @@ while sim_not_finished:
 
 show_sim(sim, min_col)
 
-print('solution to part '+str(puzzle_part)+': '+str(count_grains(sim)))
-print("time: "+str(datetime.now()-start))
+print("solution to part " + str(puzzle_part) + ": " + str(count_grains(sim)))
+print("time: " + str(datetime.now() - start))
