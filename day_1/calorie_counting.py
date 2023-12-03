@@ -1,5 +1,4 @@
 import os
-from pprint import pprint
 
 
 def get_solutions(input_file) -> tuple[int]:

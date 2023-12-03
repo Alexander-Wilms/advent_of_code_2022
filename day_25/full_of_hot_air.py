@@ -1,7 +1,5 @@
-from pprint import pprint
 
 from constraint import *
-from sympy import Abs, Symbol, nonlinsolve, solve, symbols
 
 
 def snafu_to_decimal(snafu: str) -> int:
