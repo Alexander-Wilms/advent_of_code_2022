@@ -4,7 +4,7 @@ from pprint import pprint
 
 
 class RPS(Enum):
-    rock, paper, scissors = range(1, 3+1)
+    rock, paper, scissors = range(1, 3 + 1)
 
 
 class Outcome(Enum):
@@ -16,15 +16,17 @@ class Outcome(Enum):
 def get_outcome_of_round(opponent: RPS, myself: RPS) -> Outcome:
     if opponent == myself:
         return Outcome.draw
-    elif (opponent == RPS.rock and myself == RPS.scissors) or \
-            (opponent == RPS.scissors and myself == RPS.paper) or \
-            (opponent == RPS.paper and myself == RPS.rock):
+    elif (
+        (opponent == RPS.rock and myself == RPS.scissors)
+        or (opponent == RPS.scissors and myself == RPS.paper)
+        or (opponent == RPS.paper and myself == RPS.rock)
+    ):
         return Outcome.lost
     else:
         inverted_outcome = get_outcome_of_round(myself, opponent)
         pprint(inverted_outcome)
-        print(6-inverted_outcome.value)
-        return Outcome(6-inverted_outcome.value)
+        print(6 - inverted_outcome.value)
+        return Outcome(6 - inverted_outcome.value)
 
 
 def get_score_of_round(opponent: RPS, myself: RPS):
@@ -49,31 +51,31 @@ def get_RPS_from_strategy_guide(line, puzzle_part) -> list[RPS]:
 
 def map_strategy_guide_opponent_to_enum(character) -> RPS:
     match character:
-        case 'A':
+        case "A":
             return RPS.rock
-        case 'B':
+        case "B":
             return RPS.paper
-        case 'C':
+        case "C":
             return RPS.scissors
 
 
 def map_strategy_guide_myself_to_enum(character) -> RPS:
     match character:
-        case 'X':
+        case "X":
             return RPS.rock
-        case 'Y':
+        case "Y":
             return RPS.paper
-        case 'Z':
+        case "Z":
             return RPS.scissors
 
 
 def map_strategy_guide_myself_to_Outcome_enum(myself: str) -> Outcome:
     match myself:
-        case 'X':
+        case "X":
             return Outcome.lost
-        case 'Y':
+        case "Y":
             return Outcome.draw
-        case 'Z':
+        case "Z":
             return Outcome.won
 
 
@@ -86,7 +88,7 @@ def map_strategy_guide_myself_to_RPS_enum(opponent: RPS, myself: Outcome) -> RPS
         case Outcome.won:
             return get_myself_won(opponent)
         case _:
-            raise ValueError("Could not match "+str(opponent)+' and '+str(myself))
+            raise ValueError("Could not match " + str(opponent) + " and " + str(myself))
 
 
 def get_myself_lost(opponent: RPS) -> RPS:
@@ -107,6 +109,7 @@ def get_myself_won(opponent: RPS) -> RPS:
             return RPS.scissors
         case RPS.scissors:
             return RPS.rock
+
 
 def get_solutions(input_file) -> tuple[int]:
     total_score_part_1 = 0
@@ -130,4 +133,5 @@ def get_solutions(input_file) -> tuple[int]:
 
     return total_score_part_1, total_score_part_2
 
-get_solutions('input.txt')
+
+get_solutions("input.txt")

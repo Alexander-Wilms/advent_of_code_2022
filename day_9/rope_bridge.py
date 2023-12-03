@@ -5,36 +5,38 @@ from pprint import pprint
 import numpy as np
 
 
-class Rope():
+class Rope:
     def __init__(self, input_file: str):
-        self.width, self.height, start_row, start_col, self.moves = self.determine_grid(input_file)
+        self.width, self.height, start_row, start_col, self.moves = self.determine_grid(
+            input_file
+        )
         self.grid = np.empty((self.height, self.width), dtype=object)
         self.grid_visited_by_tail = np.full((self.height, self.width), False)
         self.start: np.array = np.array([start_row, start_col])
-        print('start')
+        print("start")
         pprint(self.start)
         self.head: np.array = deepcopy(self.start)
         self.tail: np.array = deepcopy(self.start)
         for row in range(self.height):
             for col in range(self.width):
-                self.grid[row, col] = '.'
-        print('== Initial State ==')
+                self.grid[row, col] = "."
+        print("== Initial State ==")
         print(self)
 
     def get_direction(self, direction: str) -> np.ndarray:
         match direction:
-            case 'U':
+            case "U":
                 return np.array([-1, 0])
-            case 'D':
+            case "D":
                 return np.array([1, 0])
-            case 'L':
+            case "L":
                 return np.array([0, -1])
-            case 'R':
+            case "R":
                 return np.array([0, 1])
 
     def move(self):
         motion_str = self.moves.pop(0)
-        print('== '+motion_str+' ==\n')
+        print("== " + motion_str + " ==\n")
         elements = motion_str.split()
         direction = elements[0]
         magnitude = int(elements[1])
@@ -46,8 +48,8 @@ class Rope():
             # print(self)
 
             difference: list[int] = []
-            for idx in range(0, 1+1):
-                difference.append(self.head[idx]-self.tail[idx])
+            for idx in range(0, 1 + 1):
+                difference.append(self.head[idx] - self.tail[idx])
 
             abs_difference = [abs(dir) for dir in difference]
 
@@ -64,12 +66,12 @@ class Rope():
     def get_motion_to_catch_up(self, difference: list[int], anyway: bool):
         pprint(difference)
         abs_difference = [abs(dir) for dir in difference]
-        for idx in range(0, 1+1):
+        for idx in range(0, 1 + 1):
             if self.head[idx] == self.tail[idx] or anyway:
                 # check difference of axis that isnt the same
-                if abs_difference[1-idx] == 2:
-                    x = int(difference[1-idx]/abs(difference[1-idx]))*idx
-                    y = int(difference[1-idx]/abs(difference[1-idx]))*(1-idx)
+                if abs_difference[1 - idx] == 2:
+                    x = int(difference[1 - idx] / abs(difference[1 - idx])) * idx
+                    y = int(difference[1 - idx] / abs(difference[1 - idx])) * (1 - idx)
                     if not anyway:
                         self.tail += np.array([x, y])
                     else:
@@ -89,13 +91,13 @@ class Rope():
                 direction = elements[0]
                 magnitude = int(elements[1])
                 match direction:
-                    case 'U':
+                    case "U":
                         grid_height.append(-magnitude)
-                    case 'D':
+                    case "D":
                         grid_height.append(magnitude)
-                    case 'L':
+                    case "L":
                         grid_width.append(-magnitude)
-                    case 'R':
+                    case "R":
                         grid_width.append(magnitude)
 
             min_width = 0
@@ -120,17 +122,17 @@ class Rope():
                 if integrated_height > max_height:
                     max_height = integrated_height
 
-            total_width = max_width-min_width+1
-            total_height = max_height-min_height+1
+            total_width = max_width - min_width + 1
+            total_height = max_height - min_height + 1
 
-            print('min_height: '+str(min_height))
-            print('max_height: '+str(max_height))
-            print('total_height: '+str(total_height))
+            print("min_height: " + str(min_height))
+            print("max_height: " + str(max_height))
+            print("total_height: " + str(total_height))
             start_y = abs(min_height)
 
-            print('min_width: '+str(min_width))
-            print('max_width: '+str(max_width))
-            print('total_width: '+str(total_width))
+            print("min_width: " + str(min_width))
+            print("max_width: " + str(max_width))
+            print("total_width: " + str(total_width))
             pprint(total_width)
             start_x = abs(min_width)
 
@@ -143,41 +145,41 @@ class Rope():
         return len(self.moves)
 
     def __str__(self) -> str:
-        string = ''
+        string = ""
 
         covered = []
         if np.array_equal(self.tail, self.head):
-            covered.append('T')
+            covered.append("T")
         if np.array_equal(self.start, self.head):
-            covered.append('s')
+            covered.append("s")
 
         for row in range(self.height):
             for col in range(self.width):
-                cell = '.'
+                cell = "."
                 cell_idx = np.array([row, col])
                 if np.array_equal(self.start, cell_idx):
-                    cell = 's'
+                    cell = "s"
                 if np.array_equal(self.tail, cell_idx):
-                    cell = 'T'
+                    cell = "T"
                 if np.array_equal(self.head, cell_idx):
-                    cell = 'H'
-                string += cell+' '
+                    cell = "H"
+                string += cell + " "
 
             if len(covered) > 0 and row == self.head[0]:
-                string += '(H covers '+', '.join(covered)+')'
-            string += '\n'
+                string += "(H covers " + ", ".join(covered) + ")"
+            string += "\n"
         return string
 
     def print_visited_grid(self):
         for row in range(self.height):
             for col in range(self.width):
                 if not self.grid_visited_by_tail[row, col]:
-                    cell = '.'
+                    cell = "."
                 else:
-                    cell = '#'
+                    cell = "#"
                 if np.array_equal(self.start, np.array([row, col])):
-                    cell = 's'
-                print(cell, end=' ')
+                    cell = "s"
+                print(cell, end=" ")
             print()
 
 
@@ -189,9 +191,9 @@ def get_solutions(input_file) -> tuple[int]:
 
     rope.print_visited_grid()
 
-    print('\nsolution to part 1: '+str(rope.get_number_of_cells_visited_by_tail()))
+    print("\nsolution to part 1: " + str(rope.get_number_of_cells_visited_by_tail()))
 
     return rope.get_number_of_cells_visited_by_tail(), None
 
 
-get_solutions('input.txt')
+get_solutions("input.txt")

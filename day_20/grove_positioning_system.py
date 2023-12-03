@@ -6,54 +6,56 @@ import networkx as nx
 
 
 def sign(x):
-    return x/abs(x)
+    return x / abs(x)
 
 
 def get_nth_successor(G: nx.DiGraph, node: int, n: int) -> int:
-    #print(f"get_nth_successor({node}, {n})")
+    # print(f"get_nth_successor({node}, {n})")
     if n == 0:
-        #print(f"-> {node}")
+        # print(f"-> {node}")
         return node
     else:
         n = n % G.number_of_nodes()
         for successor in G.successors(node):
             pass
-        return get_nth_successor(G, successor, n-1)
+        return get_nth_successor(G, successor, n - 1)
 
 
 def get_nth_predecessor(G: nx.DiGraph, node: int, n: int) -> int:
-   # print(f"get_nth_predecessor({node}, {n})")
+    # print(f"get_nth_predecessor({node}, {n})")
     if n == 0:
-        #print(f"-> {node}")
+        # print(f"-> {node}")
         return node
     else:
         n = n % G.number_of_nodes()
         for predecessor in G.predecessors(node):
             pass
-        return get_nth_predecessor(G, predecessor, n-1)
+        return get_nth_predecessor(G, predecessor, n - 1)
 
 
 def print_sequence(G: nx.DiGraph, first: int):
     G.number_of_nodes()
     node = first
-    node_value = G.nodes[node]['value']
+    node_value = G.nodes[node]["value"]
     for successor in G.successors(node):
         pass
-    print(f"({node}: {node_value:>2})", end='')
-    for _ in range(G.number_of_nodes()-1):
-        node_value = G.nodes[successor]['value']
+    print(f"({node}: {node_value:>2})", end="")
+    for _ in range(G.number_of_nodes() - 1):
+        node_value = G.nodes[successor]["value"]
         node = get_nth_successor(G, node, 1)
-        print(f"({node}: {node_value:>2})", end='')
+        print(f"({node}: {node_value:>2})", end="")
         for successor in G.successors(node):
             pass
-    print('\n')
+    print("\n")
 
 
 def get_grove_coordinates(G: nx.DiGraph, idx_of_zero: int) -> int:
     G.number_of_nodes()
     summands = []
     for coordinte_factor_idx_offset in [1000, 2000, 3000]:
-        factor = G.nodes[get_nth_successor(G, idx_of_zero, coordinte_factor_idx_offset)]['value']
+        factor = G.nodes[
+            get_nth_successor(G, idx_of_zero, coordinte_factor_idx_offset)
+        ]["value"]
         summands.append(factor)
         pprint(factor)
     return sum(summands)
@@ -65,7 +67,7 @@ sequence_pointers = dict()
 G = nx.DiGraph()
 
 line_idx = 0
-with open('day_20_example.txt') as file:
+with open("day_20_example.txt") as file:
     for line in file:
         print(line.strip())
         number = int(line.strip())
@@ -78,8 +80,8 @@ with open('day_20_example.txt') as file:
 
 node_labels = dict()
 for node, node_data in G.nodes.items():
-    node_labels[node] = str(node)+': '+str(node_data['value'])
-    G.add_edge(node, (node+1) % 7)
+    node_labels[node] = str(node) + ": " + str(node_data["value"])
+    G.add_edge(node, (node + 1) % 7)
 
 dim = math.ceil(math.sqrt(len(sequence)))
 fig, axs = plt.subplots(dim, dim)
@@ -91,23 +93,31 @@ axs = axs.ravel()
 
 pos = nx.circular_layout(G)
 rad = 0.25
-nx.draw(G, pos, labels=node_labels, node_color='w', edgecolors='black', node_size=1100, ax=axs[0])
+nx.draw(
+    G,
+    pos,
+    labels=node_labels,
+    node_color="w",
+    edgecolors="black",
+    node_size=1100,
+    ax=axs[0],
+)
 plt.show(block=False)
 
-print('Initial arrangement:')
+print("Initial arrangement:")
 print_sequence(G, 0)
 
 
 for idx in range(len(sequence)):
     plt.pause(1)
-    current_number = G.nodes[idx]['value']
+    current_number = G.nodes[idx]["value"]
 
     if current_number != 0:
         idx_prev = get_nth_predecessor(G, idx, 1)
         idx_next = get_nth_successor(G, idx, 1)
 
         if current_number > 0:
-            idx_next_after_mixing = get_nth_successor(G, idx, current_number+1)
+            idx_next_after_mixing = get_nth_successor(G, idx, current_number + 1)
             for idx_prev_after_mixing in G.predecessors(idx_next_after_mixing):
                 pass
         elif current_number < 0:
@@ -115,7 +125,9 @@ for idx in range(len(sequence)):
             for idx_prev_after_mixing in G.predecessors(idx_next_after_mixing):
                 pass
 
-        print(f"({idx}: {current_number}) moves from between ({idx_prev}: {G.nodes[idx_prev]['value']}) and ({idx_next}: {G.nodes[idx_next]['value']}) to between ({idx_prev_after_mixing}: {G.nodes[idx_prev_after_mixing]['value']}) and ({idx_next_after_mixing}: {G.nodes[idx_next_after_mixing]['value']})")
+        print(
+            f"({idx}: {current_number}) moves from between ({idx_prev}: {G.nodes[idx_prev]['value']}) and ({idx_next}: {G.nodes[idx_next]['value']}) to between ({idx_prev_after_mixing}: {G.nodes[idx_prev_after_mixing]['value']}) and ({idx_next_after_mixing}: {G.nodes[idx_next_after_mixing]['value']})"
+        )
 
         G.remove_edge(idx_prev_after_mixing, idx_next_after_mixing)
 
@@ -129,8 +141,16 @@ for idx in range(len(sequence)):
 
         pos = nx.circular_layout(G)
     # plt.clf()
-    #plt.title('Iteration {}'.format(idx))
-    nx.draw(G, pos, labels=node_labels, node_color='w', edgecolors='black', node_size=1100, ax=axs[idx+1])
+    # plt.title('Iteration {}'.format(idx))
+    nx.draw(
+        G,
+        pos,
+        labels=node_labels,
+        node_color="w",
+        edgecolors="black",
+        node_size=1100,
+        ax=axs[idx + 1],
+    )
     plt.show(block=False)
     # input()
     fig.tight_layout()

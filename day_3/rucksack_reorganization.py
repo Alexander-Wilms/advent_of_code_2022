@@ -1,14 +1,15 @@
 from pprint import pprint
 import os
 
+
 def map_item_to_priority(item: str):
     ascii_value = ord(item)
-    if ord('a') <= ascii_value <= ord('z'):
-        return ascii_value-ord('a')+1
-    elif ord('A') <= ascii_value <= ord('Z'):
-        return ascii_value-ord('A')+26+1
+    if ord("a") <= ascii_value <= ord("z"):
+        return ascii_value - ord("a") + 1
+    elif ord("A") <= ascii_value <= ord("Z"):
+        return ascii_value - ord("A") + 26 + 1
     else:
-        raise ValueError("Can't map item '"+item+"' to a prority")
+        raise ValueError("Can't map item '" + item + "' to a prority")
 
 
 def get_solutions(file_name) -> tuple[int]:
@@ -18,12 +19,12 @@ def get_solutions(file_name) -> tuple[int]:
             rucksack = line.strip()
             print(rucksack)
             rucksack_size = len(rucksack)
-            if rucksack_size/2 % 1 > 0:
-                raise ValueError('Line has uneven number of items')
+            if rucksack_size / 2 % 1 > 0:
+                raise ValueError("Line has uneven number of items")
             print(rucksack_size)
-            first_compartment = rucksack[0:int(rucksack_size/2)]
+            first_compartment = rucksack[0 : int(rucksack_size / 2)]
             print(first_compartment)
-            second_compartment = rucksack[int(rucksack_size/2):]
+            second_compartment = rucksack[int(rucksack_size / 2) :]
             print(second_compartment)
             for first_item in first_compartment:
                 for second_item in second_compartment:
@@ -34,7 +35,7 @@ def get_solutions(file_name) -> tuple[int]:
             sum_of_priorities_part_1 += map_item_to_priority(duplicate_item)
 
     lines = []
-    with open(os.path.join(os.path.dirname(__file__), 'input.txt')) as f:
+    with open(os.path.join(os.path.dirname(__file__), "input.txt")) as f:
         for line in f:
             lines.append(line.strip())
 
@@ -46,8 +47,8 @@ def get_solutions(file_name) -> tuple[int]:
         print(line_idx)
 
         first_line = lines[line_idx]
-        second_line = lines[line_idx+1]
-        third_line = lines[line_idx+2]
+        second_line = lines[line_idx + 1]
+        third_line = lines[line_idx + 2]
 
         print(first_line)
         print(second_line)
@@ -61,15 +62,18 @@ def get_solutions(file_name) -> tuple[int]:
                     if char_first_line == char_second_line == char_third_line:
                         if not done_with_group:
                             print(char_first_line)
-                            sum_of_priorities_part_2 += map_item_to_priority(char_first_line)
+                            sum_of_priorities_part_2 += map_item_to_priority(
+                                char_first_line
+                            )
                             done_with_group = True
                             break
 
-        print('---')
+        print("---")
 
-    print('answer for part 1: '+str(sum_of_priorities_part_1))
-    print('answer for part 2: '+str(sum_of_priorities_part_2))
+    print("answer for part 1: " + str(sum_of_priorities_part_1))
+    print("answer for part 2: " + str(sum_of_priorities_part_2))
 
     return sum_of_priorities_part_1, sum_of_priorities_part_2
 
-get_solutions('input.txt')
+
+get_solutions("input.txt")

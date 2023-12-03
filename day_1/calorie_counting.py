@@ -1,6 +1,7 @@
 import os
 from pprint import pprint
 
+
 def get_solutions(input_file) -> tuple[int]:
     calories_of_current_elf = 0
     calories_of_each_elf = []
@@ -8,7 +9,7 @@ def get_solutions(input_file) -> tuple[int]:
     with open(os.path.join(os.path.dirname(__file__), input_file)) as file:
         for line in file:
             # print(line.strip())
-            if line == '\n':
+            if line == "\n":
                 calories_of_each_elf.append(calories_of_current_elf)
                 calories_of_current_elf = 0
                 no_newline_before_eof = 0
@@ -25,7 +26,7 @@ def get_solutions(input_file) -> tuple[int]:
     print(max_value_part_1)
 
     max_value_part_2 = 0
-    for _ in range(1,3+1):
+    for _ in range(1, 3 + 1):
         max_value = max(calories_of_each_elf)
         max_value_part_2 += max_value
         max_idx = calories_of_each_elf.index(max_value)
@@ -35,4 +36,5 @@ def get_solutions(input_file) -> tuple[int]:
 
     return max_value_part_1, max_value_part_2
 
-get_solutions('input.txt')
+
+get_solutions("input.txt")
